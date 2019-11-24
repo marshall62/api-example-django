@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block body %}
+<h1>Welcome to the office of Dr {{ doctor.first_name }} {{ doctor.last_name }}</h1>
+<h3>Please let us know you are here by checking in:</h3>
+<br><br>
+<form method="post" action="patientCheckin">
+    <div class="form-group">
+
+        <div class="row">
+            <div class="col col-sm-3">
+                <div class="input-group">
+                    <label for="fname">First Name</label>
+                    <input id="fname" type="text" class="form-control" name="fname">
+                </div>
+            </div>
+            <div class="col col-sm-3">
+                <div class="input-group">
+                    <label for="lname">Last Name</label>
+                    <input id="lname" type="text" class="form-control" name="lname">
+                </div>
+            </div>
+        </div>
+        <br><br>
+        <div class="input-group col-sm-1">
+            <label for="ssn4">SSN First 4 Digits</label>
+            <input id="ssn4" type="text" maxlength="4" class="form-control" name="fname">
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+
+</form>
+<!--{{ doctor }}-->
+{% endblock %}

@@ -1,0 +1,38 @@
+1.  Install latest version of all libs mentioned in requirements.txt
+except must use Django 1.11.23
+mysql-python has error remove from list.
+
+run python manage.py migrate to create db tables.
+
+2.  Since I'm not using docker the two strings created for oauth communication with API need to be grabbed from drchrono website
+and set as environment vars with these names:
+SOCIAL_AUTH_CLIENT_ID=abqHNtcyOZWxqFM9Cu1QyzFL8UoyjdrjpP0YXYnM
+SOCIAL_AUTH_SECRET=3NYl6TcSnxlsxSG0nqJ3N5nPgeWR2fwW0r4V9J9j9fMpyxqSSwZtf4CfO5w1A102mNQlAPxknZIJw5eWMEcUy2qCbDT7XIKM2apFSTVc4OjD6mwCygI5jAZVTJHOeZk6
+
+3.
+I went to localhost:8080/setup and this takes me to drchron website login which I do.  From there I can then get to
+a successful localhost:8080/welcome
+
+So it's not that clear where they want me to plug in my work. There is a url path:
+url(r'^welcome/$', views.DoctorWelcome.as_view(), name='setup'),
+
+I think this might be the Page they mention in the instructions of the Kiosk to allow a Dr to login to the kiosk which brings the kiosk to
+a page that allows patients to check in.
+
+-Not sure what paths are supposed to be used for the doctor dashboard so I'm going to add new ones.
+-Not sure where the appointments and patients arriving/checking in comes from.   Is db pre-loaded with some?
+-Am I supposed to learn the drchrono API and start making calls to it to see whats in the db?
+
+ Exploring this and I find no tables in the db relevant to appointments, patients, etc.  So I guess I build my own model for this and
+ populate however I want.  So what am I using the API for?  Just login of doctor?
+
+
+
+URL for creating API strings:
+
+
+DB Notes:
+
+sqlite3 drchrono.sqlite3
+.help
+.tables
