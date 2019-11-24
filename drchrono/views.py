@@ -1,6 +1,6 @@
 from django.views.generic import TemplateView
-from sched.DaySchedule import DaySchedule
-from models.Doctor import Doctor
+from drchrono.sched.DaySchedule import DaySchedule
+from drchrono.models.Doctor import Doctor
 
 
 class SetupView(TemplateView):

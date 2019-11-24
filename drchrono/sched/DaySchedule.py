@@ -1,6 +1,6 @@
 from social_django.models import UserSocialAuth
 import datetime
-import dates
+import drchrono.dates as dates
 
 from drchrono.endpoints import  AppointmentEndpoint, PatientEndpoint
 
