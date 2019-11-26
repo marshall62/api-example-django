@@ -1,6 +1,6 @@
 {% extends 'navbar_page.html' %}
 {% block body %}
-<h1>Day Schedule</h1>
+<h2>Day Schedule</h2>
 
 <h3>In Exam Rooms</h3>
 
@@ -8,9 +8,28 @@
 
 <h3>Later Appointments</h3>
     <table class="table table-bordered">
+      <thead><th>time</th><th>First</th><th>Last</th><th>SSN</th><th>Reason</th><th>Status</th><th>Action</th></thead>
     {% for a in appointments %}
             <tr>
-                <td>{{a.scheduled_time}}</td><td>{{a.first_name}}</td><td>{{a.last_name}}</td><td>{{a.reason}}</td>
+                <td>{{a.scheduled_time}}</td>
+                <td>{{a.first_name}}</td>
+                <td>{{a.last_name}}</td>
+                <td>{{a.ssn}}</td>
+                <td>{{a.reason}}</td>
+                <td>{{a.status}}</td>
+                <td>
+                  <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
+                      <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                      <li><a href="#">Not-present</a></li>
+                      <li><a href="#">Admit to Exam</a></li>
+                      <li><a href="#">Appointment Complete</a></li>
+                      <li><a href="#">Return to Waiting Room</a></li>
+                    </ul>
+                  </div>
+                </td>
+
             </tr>
     {% endfor %}
     </table>

@@ -180,9 +180,21 @@ class BaseEndpoint(object):
 class PatientEndpoint(BaseEndpoint):
     endpoint = "patients"
 
+    # TODO ignoring ssn for now.  Handle not found patient gracefully.
+    def list(self, params=None, first_name=None, last_name=None, ssn4=None, **kwargs):
+        params = params or {}
+        params['first_name'] = first_name
+        params['last_name'] = last_name
+        patients = super(PatientEndpoint, self).list(params, **kwargs)
+        return [p for p in patients if p['social_security_number'][-4:] != None]
+
+
 
 class AppointmentEndpoint(BaseEndpoint):
     endpoint = "appointments"
+
+    def update(self, id, data, partial=True, **kwargs):
+        return super(AppointmentEndpoint, self).update(id=id, data=data, partial=partial, **kwargs)
 
     # Special parameter requirements for a given resource should be explicitly called out
     def list(self, params=None, date=None, start=None, end=None, **kwargs):
@@ -216,3 +228,5 @@ class DoctorEndpoint(BaseEndpoint):
 
 class AppointmentProfileEndpoint(BaseEndpoint):
     endpoint = "appointment_profiles"
+
+
