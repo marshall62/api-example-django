@@ -10,7 +10,7 @@ from drchrono import views
 
 urlpatterns = [
     url(r'^setup/$', views.SetupView.as_view(), name='setup'),
-    url(r'^welcome/$', views.DoctorWelcome.as_view(), name='welcome'), #name was originally setup
+    url(r'^welcome/$', views.DoctorSchedule.as_view(), name='welcome'), #name was originally setup
     url(r'^kiosk/$', views.Kiosk.as_view(), name='kiosk'),
     url(r'^kiosk/patientCheckIn$', views.CheckinView.as_view(), name='patientCheckIn'),
     url(r'^admin/', include(admin.site.urls)),

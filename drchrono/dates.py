@@ -7,3 +7,7 @@ def time_format(dt_str):
     hr = dt.hour % 12 if dt.hour > 12 else dt.hour
     m = "0" + str(dt.minute) if dt.minute < 10 else str(dt.minute)
     return "{}:{}".format(hr,m)
+
+def timestamp_api_format (dt):
+    '''Convert a date to a timestamp in the format the API wants it yyyy-mm-ddThh:mm:ss'''
+    return dt.strftime("%Y-%m-%dT%H:%M:%S")

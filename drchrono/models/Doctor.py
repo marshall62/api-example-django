@@ -1,27 +1,44 @@
-from drchrono.endpoints import DoctorEndpoint
+from drchrono.endpoints import DoctorEndpoint, OfficeEndpoint
 from drchrono.models.APIObj import APIObj
 
 
 class Doctor(APIObj):
+    ''' Singleton Doctor loaded from API only once'''
+    instance = None
 
-    def __init__(self):
-        super().__init__()
-        self.__doc = self.__get_doc()
-        self.__doc_id = self.__doc['id']
 
-    @property
-    def obj (self):
-        return self.__doc
+    def __init__ (self):
+        if not Doctor.instance:
+            Doctor.instance = Doctor.__Doctor()
+
+
+    class __Doctor(APIObj):
+        def __init__(self):
+            super().__init__(endpoint=DoctorEndpoint)
+            self._data = self._get_data()
+            self._id = self._data['id']
+            self._set_office()
+
+        def _set_office (self):
+            office_api = OfficeEndpoint(self._access_tok)
+            office = next(office_api.list(data={'doctor': self.id}))  # there better only be one
+            self._data['office'] = office['id']
+
+        def _get_data(self):
+            return next(self._endpoint.list())
 
     @property
     def id (self):
-        return self.__doc_id
+        return Doctor.instance.id
 
-    def __get_doc(self):
-        """
-        Return the current doctor
-        """
-        api = DoctorEndpoint(self._access_tok)
-        # Grab the first doctor from the list; normally this would be the whole practice group, but your hackathon
-        # account probably only has one doctor in it.
-        return next(api.list())
+    @property
+    def data (self):
+        return Doctor.instance.data
+
+    @property
+    def first_name (self):
+        return Doctor.instance._data['first_name']
+
+    @property
+    def last_name (self):
+        return Doctor.instance._data['last_name']

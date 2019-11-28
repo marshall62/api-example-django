@@ -212,6 +212,9 @@ class AppointmentEndpoint(BaseEndpoint):
             raise Exception("Must provide either start & end, or date argument")
         return super(AppointmentEndpoint, self).list(params, **kwargs)
 
+class OfficeEndpoint(BaseEndpoint):
+    endpoint = "offices"
+
 
 class DoctorEndpoint(BaseEndpoint):
     endpoint = "doctors"

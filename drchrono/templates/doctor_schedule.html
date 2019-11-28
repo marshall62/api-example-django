@@ -1,0 +1,89 @@
+{% extends 'navbar_page.html' %}
+{% block body %}
+
+<h3>In Exam Rooms</h3>
+  <table class="table table-bordered">
+    <thead><th>time</th><th>duration</th><th>First</th><th>Last</th><th>Reason</th><th>Action</th></thead>
+    {% for a in appointments %}
+      {% if a.status == 'In Session' %}
+        <tr>
+          <td>{{a.scheduled_time_12hr}}</td>
+          <td></td>
+          <td>{{a.first_name}}</td>
+          <td>{{a.last_name}}</td>
+          <td>{{a.reason}}</td>
+          <td>
+            <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
+                <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#">Not-present</a></li>
+                <li><a href="#">Admit to Exam</a></li>
+                <li><a href="#">Appointment Complete</a></li>
+                <li><a href="#">Return to Waiting Room</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+  </table>
+
+<h3>In Waiting Room</h3>
+  <table class="table table-bordered">
+    <thead><th>time</th><th>overtime</th><th>First</th><th>Last</th><th>Reason</th><th>Action</th></thead>
+    {% for a in appointments %}
+      {% if a.status == 'Checked In' %}
+        <tr>
+          <td>{{a.scheduled_time_12hr}}</td>
+          <td></td>
+          <td>{{a.first_name}}</td>
+          <td>{{a.last_name}}</td>
+          <td>{{a.reason}}</td>
+          <td>
+            <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
+                <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#">Not-present</a></li>
+                <li><a href="#">Admit to Exam</a></li>
+                <li><a href="#">Appointment Complete</a></li>
+                <li><a href="#">Return to Waiting Room</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+  </table>
+
+<h3>Later Appointments</h3>
+    <table class="table table-bordered">
+      <thead><th>time</th><th>First</th><th>Last</th><th>Reason</th><th>Status</th><th>Action</th></thead>
+    {% for a in appointments %}
+      {% if a.status != 'Checked In' and a.status != 'In Session'%}
+            <tr>
+                <td>{{a.scheduled_time_12hr}}</td>
+                <td>{{a.first_name}}</td>
+                <td>{{a.last_name}}</td>
+                <td>{{a.reason}}</td>
+                <td>{{a.status}}</td>
+                <td>
+                  <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
+                      <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                      <li><a href="#">Not-present</a></li>
+                      <li><a href="#">Admit to Exam</a></li>
+                      <li><a href="#">Appointment Complete</a></li>
+                      <li><a href="#">Return to Waiting Room</a></li>
+                    </ul>
+                  </div>
+                </td>
+
+            </tr>
+      {% endif %}
+    {% endfor %}
+    </table>
+<!--{{ doctor }}-->
+{% endblock %}

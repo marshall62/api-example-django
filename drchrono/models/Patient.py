@@ -4,23 +4,38 @@ from drchrono.models.APIObj import APIObj
 
 class Patient(APIObj):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data={}, id=None, fname=None, lname=None, ssn4=None):
+        if data:
+            super().__init__(data=data, endpoint=PatientEndpoint)
+        elif id != None:
+            super().__init__(endpoint=PatientEndpoint)
+            self.load_by_id(id)
+        # TODO SSN4 necessary to uniquely fetch but need to decide on whether 4-digit needs to come from UI
+        elif fname and lname:
+            super().__init__(endpoint=PatientEndpoint)
+            self._load_by_name(fname,lname)
+        else:
+            super().__init__(endpoint=PatientEndpoint)
 
+
+    def _load_by_name(self, fname, lname, ssn4=None):
+        patients = self._endpoint.list(first_name=fname, last_name=lname, ssn4=ssn4)
+        self.data = patients[0] if patients else None
+        return self.data
 
     @property
-    def obj (self):
-        return self.__doc
+    def first_name (self):
+        return self._data['first_name']
 
     @property
-    def id (self):
-        return self.__doc_id
+    def last_name (self):
+        return self._data['last_name']
 
-    def get_patient(self, fname, lname, ssn4):
-        """
-        Return the current doctor
-        """
-        api = PatientEndpoint(self._access_tok)
-        patients = api.list(first_name=fname, last_name=lname, ssn4=ssn4)
-        # there should be only one with this ssn so return first
-        return patients[0] if patients else None
+    @property
+    def ssn4 (self):
+        return self._data['social_security_number'][-4:]
+
+
+    def __repr__ (self):
+        return "<Patient {} {} {}>".format(self.first_name, self.last_name, self.ssn4)
+
