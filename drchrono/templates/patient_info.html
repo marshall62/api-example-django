@@ -1,0 +1,14 @@
+Welcome {{ fname }} {{ lname }}
+<br>
+Please update your information if anything has changed since the last time you were here.
+
+<form action="." method="POST">
+
+  {% csrf_token %}
+
+
+  <table>
+
+  </table>
+  <button type="submit">SUBMIT</button>
+</form>

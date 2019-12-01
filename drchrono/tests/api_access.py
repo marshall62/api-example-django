@@ -3,7 +3,7 @@ import sqlite3
 
 
 def get_extra_data ():
-    conn = sqlite3.connect('/srv/raiddisk/dev/pydev/drc2/drchrono.sqlite3')
+    conn = sqlite3.connect('../../drchrono.sqlite3')
     cursor = conn.cursor()
 
     cursor.execute("select extra_data from social_auth_usersocialauth where provider='drchrono'")

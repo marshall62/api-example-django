@@ -1,11 +1,10 @@
 from django.views.generic import TemplateView, FormView, View
 from django.shortcuts import render
 from django.urls import reverse_lazy
-from drchrono.sched.DaySchedule import DaySchedule
 from drchrono.models.Doctor import Doctor
-from drchrono.models.Appointments import Appointments
+from drchrono.sched.Appointments import Appointments
 from drchrono.models.Patient import Patient
-from drchrono.forms import CheckinForm
+from drchrono.forms import CheckinForm, PatientInfoForm
 
 
 class SetupView(TemplateView):
@@ -76,11 +75,21 @@ class Kiosk(View):
 class CheckinView(FormView):
     form_class = CheckinForm
     template_name = 'checkin.html'
-    success_url = reverse_lazy('kiosk')
+    success_url = reverse_lazy('patient_info')
 
     def form_valid (self, form):
         self.checkin_patient(form.cleaned_data)
-        return super(CheckinView, self).form_valid(form)
+        return super().form_valid(form)
 
     def checkin_patient (self, valid_data):
-        print("patient checking in", valid_data)
+        fname = valid_data['first_name']
+        lname = valid_data['last_name']
+        ssn4 = valid_data['ssn4']
+        p = Patient(fname=fname,lname=lname,ssn4=ssn4)
+        # TODO SHould we verify that this patient has an appointment today and that they have arrived in neighborhood of scheduled time?
+        p.status = 'Checked In'
+
+class PatientInfoView (FormView):
+    form_class = PatientInfoForm
+    template_name = 'patient_info.html'
+    success_url = reverse_lazy('patientCheckIn')

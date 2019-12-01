@@ -6,5 +6,9 @@ from django.forms import widgets
 class CheckinForm(forms.Form):
     fname = forms.CharField()
     lname = forms.CharField()
-    ssn4 = forms.CharField()
+    ssn4 = forms.CharField(max_length=4)
 
+
+class PatientInfoForm (forms.Form):
+    fname = forms.CharField()
+    lname = forms.CharField()

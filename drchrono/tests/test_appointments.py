@@ -1,86 +1,138 @@
 import pytest
 import datetime
-import drchrono.dates as dateutil
-from drchrono.endpoints import DoctorEndpoint
-from drchrono.models.Doctor import Doctor
-from drchrono.models.Patient import Patient
-from drchrono.models.Appointment import Appointment
-from drchrono.models.Appointments import Appointments
-from drchrono.models.PatientAppointment import PatientAppointment
+from itertools import cycle
 from .api_access import get_access_tok
+from drchrono.models.Doctor import Doctor
+from drchrono.models.Appointment import Appointment
+from drchrono.sched.Appointments import Appointments
+from drchrono.sched.Patients import Patients
+from drchrono.models.PatientAppointment import PatientAppointment
+from drchrono.endpoints import AppointmentEndpoint
+import drchrono.dates as dateutil
 
 
-def test_doc_endpoint ():
-    access_tok = get_access_tok()
-    ep = DoctorEndpoint(access_tok)
-    d = next(ep.list())
-    assert d != None
+class TestAppointments:
+
+    def setup_class(cls):
+        cls.doctor = Doctor()
+        cls.pf = Patients(cls.doctor)
+        cls.patients = cls.pf.patients
+        cls.patient1 = cls.patients[0]
 
 
-def test_doc_obj ():
-    d = Doctor()
-    assert d != None
-    assert d.last_name == 'Marshall'
+    def test_get_all_appts (self):
+        access_tok = get_access_tok()
+        ep = AppointmentEndpoint(access_tok)
+        d = datetime.date.today()
+        dt = dateutil.timestamp_api_format(d)
+        # gets all appointments held by this doctor
+        alist = list(ep.list(date=dt, params={'doctor': TestAppointments.doctor.id}))
+        print (len(alist))
+        assert len(alist) > 0
 
 
-def test_patient ():
-    p = Patient(fname='Jenny', lname='Harris')
-    assert p != None
-    id = p.id
-    p = Patient(id=id)
-    assert p != None
-    assert p.last_name == 'Harris' and p.first_name == 'Jenny'
-    p = Patient(data=p.data)
-    assert p.last_name == 'Harris' and p.first_name == 'Jenny'
-    assert p.id == id
-    p = Patient()
-    assert p.data == {} and p.id == None
+    @pytest.mark.skip
+    def test_appointments (self):
+        af = Appointments(TestAppointments.doctor)
+        all = af.get_appointments_for_date()
+        for a in all:
+            assert type(a) is PatientAppointment
 
-def test_appointments ():
-    doc = Doctor()
-    appts = Appointments(doc)
-    all = appts.get_appointments_for_date()
-    for a in all:
-        assert type(a) is PatientAppointment
+        p = TestAppointments.patient1
+        all = af.get_appointments_for_patient(p.id)
+        for a in all:
+            assert a.patient_id == p.id
 
-    p = Patient(fname='Jenny', lname='Harris')
-    all = appts.get_appointments_for_patient(p.id)
-    for a in all:
-        assert a.patient_id == p.id
 
-def test_create_apppointment ():
-    doc = Doctor()
-    p = Patient(fname='Jenny', lname='Harris')
-    a = Appointment(doctor=doc) # new empty appointment
-    # TODO new appointment must have all required fields.  Need to set reasonable defaults when create.
+    @pytest.mark.skip
+    def test_appt_status_chg (self):
+        ''' change the status of the first patients first appointment to No Show'''
+        p = TestAppointments.patient1
+        a = Appointments(TestAppointments.doctor)
+        appts = a.get_appointments_for_patient(patient_id=p.id)
+        if len(appts) > 0:
+            a1 = appts[0]
+            id = a1.appointment_id
+            status1 = a1.status
+            a1.status = 'No Show' # updates this appt status with API
+            appts = a.get_appointments_for_patient(patient_id=p.id)
+            a1 = appts[0]
+            assert id == a1.appointment_id
+            assert 'No Show' == a1.status
+            a1.status = status1 # restore to the original status (not verifying it succeeds)
 
-    a.patient_id = p.id
-    tz = datetime.tzinfo.utcoffset(5)
-    ts = datetime.datetime.now(tz) # timezone is wrong by 5 hours.   TODO correct
-    a.scheduled_time = dateutil.timestamp_api_format(ts)
-    json = a.create() # save to API
-    print("json of new appt is", json)
-    assert(json != None)
 
-def test_appointment_status_chg ():
-    ''' poorly done:  it tests setting status of a appointment persist to API.  Does
-    this by changing appointments to "Arrived" and then changing them back.  If it fails,
-    the appointment might be left in "Arrived" setting. '''
-    doc = Doctor()
-    appts = Appointments(doc)
-    p = Patient(fname='Jenny', lname='Harris')
-    all = appts.get_appointments_for_patient(p.id)
-    orig_statuses = {}
-    for a in all:
-        appt_id = a.appointment_id
-        stat = a.status
-        orig_statuses[appt_id] = stat # save the original status
-        a.status = 'Arrived' # will persist it to API
-    all = appts.get_appointments_for_patient(p.id)
-    for a in all:
-        stat = a.status
-        assert stat == 'Arrived'
-        a.status = orig_statuses[a.appointment_id] # set it back to the original
+    @pytest.mark.skip
+    def test_create_apppointment (self):
+        '''
+        Create an appointment (time= now ) for patient 1
+        :return:
+        '''
+        p = TestAppointments.patient1
+        a = Appointment(doctor=TestAppointments.doctor) # new empty appointment
+
+        a.patient_id = p.id
+
+        ts = datetime.datetime.now()
+        a.scheduled_time = dateutil.timestamp_api_format(ts)
+        json = a.create() # save to API
+        print("json of new appt is", json)
+        assert(json != None)
+        created_appt_id = json['id']
+        appts = Appointments(TestAppointments.doctor)
+        patient_appointments = appts.get_appointments_for_patient(patient_id=p.id)
+        found = False
+        for pa in patient_appointments:
+            if pa.appointment.id == created_appt_id:
+                found = True
+        assert found, "Created appointment was not found when looking up patients appointments"
+
+    @pytest.mark.skip
+    def test_create_10_appointments (self):
+        '''
+        Create 10 appointments at random times today for different patients
+        Will use this to test UI.
+        :return:
+        '''
+        patients = TestAppointments.patients
+        count = 0
+        ts = datetime.datetime.now()
+        appointment_ids = []
+        for p in cycle(patients):
+            # add 30 minutes to timestamp for each new appointment
+            a = Appointment(doctor=TestAppointments.doctor, data={})
+            ts = ts + datetime.timedelta(minutes=30)
+            a.scheduled_time = dateutil.timestamp_api_format(ts)
+            a.patient_id = p.id
+            json = a.create() # save to API
+            print(json)
+            appointment_ids.append(json['id'])
+            count += 1
+            if count >= 10:
+                break
+
+        assert 10 == len(appointment_ids)
+
+
+    @pytest.mark.skip
+    def test_appointment_status_empty (self):
+
+        appts = Appointments(TestAppointments.doctor)
+        p = TestAppointments.patient1
+        all = appts.get_appointments_for_patient(p.id)
+        orig_statuses = {}
+        for a in all:
+            appt_id = a.appointment_id
+            stat = a.status
+            orig_statuses[appt_id] = stat # save the original status
+            a.status = '' # will persist it to API
+        all = appts.get_appointments_for_patient(p.id)
+        for a in all:
+            stat = a.status
+            assert '' == stat
+
+
+
 
 
 
