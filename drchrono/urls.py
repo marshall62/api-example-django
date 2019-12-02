@@ -13,7 +13,7 @@ urlpatterns = [
     url(r'^welcome/$', views.DoctorSchedule.as_view(), name='welcome'), #name was originally setup
     url(r'^kiosk/$', views.Kiosk.as_view(), name='kiosk'),
     url(r'^kiosk/patientCheckIn/$', views.CheckinView.as_view(), name='patientCheckIn'),
-    url(r'^kiosk/patientInfo/$', views.PatientInfoView.as_view(), name='patientInfo'),
+    url(r'^kiosk/patientInfo/(?P<patient_id>\d+)$', views.PatientInfoView.as_view(), name='patientInfo'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'', include('social.apps.django_app.urls', namespace='social')),
 ]

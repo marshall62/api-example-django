@@ -1,14 +1,18 @@
-Welcome {{ fname }} {{ lname }}
+
+{% extends 'base.html' %}
+{% block body %}
+Welcome {{ fname }}
 <br>
 Please update your information if anything has changed since the last time you were here.
+{{ form.all.errors }}
 
-<form action="." method="POST">
+<form method="POST">
 
   {% csrf_token %}
 
-
   <table>
-
+    {{ form.as_table }}
   </table>
   <button type="submit">SUBMIT</button>
 </form>
+{% endblock %}

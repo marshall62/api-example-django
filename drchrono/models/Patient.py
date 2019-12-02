@@ -1,18 +1,21 @@
 from drchrono.endpoints import PatientEndpoint
 from drchrono.models.APIObj import APIObj
+from drchrono.exc.exceptions import NonUniqueException, NotFoundException
 
 
 class Patient(APIObj):
 
-    def __init__(self, data={}, id=None, fname=None, lname=None, ssn4=None):
+
+
+    def __init__(self, data={}, id=None, first_name=None, last_name=None, ssn4=None):
         if data:
             super().__init__(data=data, endpoint=PatientEndpoint)
         elif id != None:
             super().__init__(endpoint=PatientEndpoint)
             self.load_by_id(id)
-        elif fname and lname and ssn4:
+        elif first_name and last_name:
             super().__init__(endpoint=PatientEndpoint)
-            self._load_by_name(fname,lname, ssn4)
+            self._load_by_name(first_name, last_name, ssn4)
         else:
             super().__init__(endpoint=PatientEndpoint)
 
@@ -21,6 +24,11 @@ class Patient(APIObj):
         patients = self._endpoint.list(first_name=fname, last_name=lname, ssn4=ssn4)
         if len(patients) == 1:
             self._data = patients[0] if patients else None
+        elif len(patients) > 1:
+            raise NonUniqueException("Could not find a single patient with that name.  Please use SSN")
+        else:
+            raise NotFoundException("Patient could not be found")
+
 
 
     @property

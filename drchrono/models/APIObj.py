@@ -8,11 +8,10 @@ class APIObj:
         self._access_tok = self._get_token()
         self._endpoint = endpoint(self._access_tok)
         self._data = data
-        self._id = data['id'] if data else None
 
     @property
     def id (self):
-        return self._id
+        return self._data['id']
 
     @property
     def data (self):
@@ -21,7 +20,6 @@ class APIObj:
     @data.setter
     def data(self, data):
         self._data = data
-        self._id = data['id']
 
     def update (self):
         '''
@@ -51,7 +49,6 @@ class APIObj:
             self._endpoint.update(id=self.id, data={property: value})
 
     def load_by_id (self, id):
-        self._id = id
         self._data = self._endpoint.fetch(id=id)
         return self._data
 

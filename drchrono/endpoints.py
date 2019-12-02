@@ -184,13 +184,16 @@ class BaseEndpoint(object):
 class PatientEndpoint(BaseEndpoint):
     endpoint = "patients"
 
-    # TODO ignoring ssn for now.  Handle not found patient gracefully.
+
     def list(self, params=None, first_name=None, last_name=None, ssn4=None, **kwargs):
         params = params or {}
         params['first_name'] = first_name
         params['last_name'] = last_name
         patients = super(PatientEndpoint, self).list(params, **kwargs)
-        return [p for p in patients if p['social_security_number'][-4:] != None]
+        if ssn4:
+            return [p for p in patients if p['social_security_number'][-4:] == ssn4]
+        else:
+            return list(patients)
 
 
 
