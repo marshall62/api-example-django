@@ -1,7 +1,9 @@
 from django.views.generic import TemplateView, FormView, View
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from drchrono.models.Doctor import Doctor
+from drchrono.models.Appointment import Appointment
 from drchrono.sched.Appointments import Appointments
 from drchrono.models.Patient import Patient
 from drchrono.forms import CheckinForm, PatientInfoForm
@@ -10,6 +12,16 @@ from django.forms.utils import ErrorList
 
 from drchrono.exc.exceptions import NonUniqueException, NotFoundException
 from django import forms
+
+def updateAppointmentStatus (request, appointment_id):
+    if request.method == 'POST':
+        status = request.POST['status']
+        trans = {'absent': 'No Show', 'complete': 'Complete', 'waiting': 'Checked In', 'exam': 'In Session'}
+        status = trans[status];
+        a = Appointment(id=appointment_id)
+        a.status = status # writes status to appointment API
+        return HttpResponse()
+
 
 
 class SetupView(TemplateView):
@@ -48,29 +60,6 @@ class Kiosk(View):
         doc = Doctor()
         kwargs['doctor'] = doc
         return render(request, self.template_name)
-
-'''
-    def post (self, request, *args, **kwargs):
-        post = request.POST
-        doc = Doctor()
-        fname = post['fname']
-        lname = post['lname']
-        ssn4 = post['ssn4']
-        p = Patient(fname, lname, ssn4)
-        if p:
-            schedule = DaySchedule(doc.id)
-            appts = schedule.get_patient_appointments(p.id)
-            for a in appts:
-            # if patient has multiple appts set all that are non-complete to "Checked In"
-            # This just makes it so the patient does not have to sign in thru the kiosk again.
-                if a['status'] != 'Complete' and a['status'] != 'Checked In':
-                    print('appointment id', a['id'], 'status', a['status'])
-                    schedule.set_patient_appointment_status(a['id'], 'Checked In')
-        # TODO send to a screen to update their info if found
-
-        kwargs['doctor'] = doc
-        return  render(request, self.template_name)
-'''
 
     # def get_context_data(self, **kwargs):
     #     kwargs = super(Kiosk, self).get_context_data(**kwargs)

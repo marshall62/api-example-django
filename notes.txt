@@ -1,3 +1,12 @@
+TODO:
+
+If dr marks patient 'no show' and then patient checks in, need to repopulate in sched
+
+
+
+
+
+
 1.  Install latest version of all libs mentioned in requirements.txt
 except must use Django 1.11.23
 mysql-python has error remove from list.

@@ -7,14 +7,20 @@ class Appointment(APIObj):
     A single appointment
     '''
 
-    def __init__(self, doctor=None, duration=0, data={}):
-        super().__init__(data=data, endpoint=AppointmentEndpoint)
+    def __init__(self, id=None, doctor=None, duration=0, data={}):
         if not doctor:
             doctor = Doctor()
-        self._data['doctor'] = doctor.id
-        self._data['duration'] = duration
-        self._data['exam_room'] = 1
-        self._data['office'] = doctor.data['office']
+        if id:
+            super().__init__(endpoint=AppointmentEndpoint)
+            self.load_by_id(id)
+        else:
+            super().__init__(data=data, endpoint=AppointmentEndpoint)
+            self._data['doctor'] = doctor.id
+            self._data['duration'] = duration
+            self._data['exam_room'] = 1
+            self._data['office'] = doctor.data['office']
+
+
 
     @property
     def patient_id (self):

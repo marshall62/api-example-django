@@ -87,7 +87,7 @@ class TestAppointments:
                 found = True
         assert found, "Created appointment was not found when looking up patients appointments"
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_create_10_appointments (self):
         '''
         Create 10 appointments at random times today for different patients

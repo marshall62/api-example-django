@@ -1,4 +1,59 @@
 {% extends 'navbar_page.html' %}
+
+{% block page-js %}
+  <script language="javascript">
+
+  function saveStat (appt_id, status) {
+    var data = new FormData();
+    data.set('status',status);
+    var url = "/appointments/" + appt_id;
+    $.ajax({
+      url: url,
+      type: "POST",
+      data: data,
+      processData: false,
+      contentType: false,
+      error: function (a, b, c) {
+        console.log("Failed to write to server! " + a.responseText + b);
+        console.log(a);
+      },
+      success: function (data) {
+        console.log("success", data);
+      }
+    });
+  }
+
+
+  function statusUpdate (aElt, appointmentId, newStatus) {
+    if (!((newStatus === 'complete' || newStatus === 'absent') &&
+        confirm("Please confirm status setting of " + newStatus)))
+      return;
+    saveStat(appointmentId, newStatus);
+    // TODO remove table row and insert in correct table
+    // remove the table row holding this <a>
+    // depending on the status:
+    // exam: put in Exam table
+    // waiting: put in Waiting table
+    // complete: remove
+    // absent: remove
+    var row = aElt.closest("tr");
+    if (newStatus === "complete")
+      row.remove();
+
+  }
+
+  $( document ).ready(function () {
+    $('a.status').on('click', function () {
+      var $e = $(this);
+      statusUpdate($e, $e.attr('data-appointment-id'), $e.attr('data-stat'));
+    });
+
+  });
+
+  </script>
+{% endblock %}
+
+
 {% block body %}
 
 <h3>In Exam Rooms</h3>
@@ -17,10 +72,10 @@
               <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
                 <span class="caret"></span></button>
               <ul class="dropdown-menu">
-                <li><a href="#">Not-present</a></li>
-                <li><a href="#">Admit to Exam</a></li>
-                <li><a href="#">Appointment Complete</a></li>
-                <li><a href="#">Return to Waiting Room</a></li>
+                <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">Not present</a></li>
+                <li><a class="status" data-stat="exam" data-appointment-id="{{ a.appointment_id }}">Admit to Exam</a></li>
+                <li><a class="status" data-stat="complete" data-appointment-id="{{ a.appointment_id }}">Appointment Complete</a></li>
+                <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Return to Waiting Room</a></li>
               </ul>
             </div>
           </td>
@@ -45,10 +100,10 @@
               <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
                 <span class="caret"></span></button>
               <ul class="dropdown-menu">
-                <li><a href="#">Not-present</a></li>
-                <li><a href="#">Admit to Exam</a></li>
-                <li><a href="#">Appointment Complete</a></li>
-                <li><a href="#">Return to Waiting Room</a></li>
+                <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">Not present</a></li>
+                <li><a class="status" data-stat="exam" data-appointment-id="{{ a.appointment_id }}">Admit to Exam</a></li>
+                <li><a class="status" data-stat="complete" data-appointment-id="{{ a.appointment_id }}">Appointment Complete</a></li>
+                <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Return to Waiting Room</a></li>
               </ul>
             </div>
           </td>
@@ -73,10 +128,10 @@
                     <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
                       <span class="caret"></span></button>
                     <ul class="dropdown-menu">
-                      <li><a href="#">Not-present</a></li>
-                      <li><a href="#">Admit to Exam</a></li>
-                      <li><a href="#">Appointment Complete</a></li>
-                      <li><a href="#">Return to Waiting Room</a></li>
+                      <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">Not present</a></li>
+                      <li><a class="status" data-stat="exam" data-appointment-id="{{ a.appointment_id }}">Admit to Exam</a></li>
+                      <li><a class="status" data-stat="complete" data-appointment-id="{{ a.appointment_id }}">Appointment Complete</a></li>
+                      <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Return to Waiting Room</a></li>
                     </ul>
                   </div>
                 </td>
