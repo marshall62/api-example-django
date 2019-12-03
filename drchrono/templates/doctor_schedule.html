@@ -23,30 +23,76 @@
     });
   }
 
+  function moveToWaiting ($rowElt) {
+    var $body = $('#waitingTableBody');
+    var appt_id = $rowElt.data('appointment-id');
+    var $ddTd = $rowElt.find('td').last();
+    $ddTd.empty(); // eliminate the dropdown menu
+    //dropdown cell needs to change to exam, absent
+    var dd = '<div class="dropdown">' +
+        '              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Checked In' +
+        '                <span class="caret"></span></button>' +
+        '              <ul class="dropdown-menu">' +
+        '                <li><a class="status" data-stat="exam" data-appointment-id="' +appt_id+ '">In Session</a></li>' +
+        '                <li><a class="status" data-stat="absent" data-appointment-id="' +appt_id+ '">No Show</a></li>' +
+        '              </ul>' +
+        '            </div>';
+
+    $ddTd.append(dd)
+    $body.append($rowElt);
+  }
+
+  function moveToExam ($rowElt) {
+    var $body = $('#examTableBody');
+    var appt_id = $rowElt.data('appointment-id');
+    var $ddTd = $rowElt.find('td').last();
+    $ddTd.empty(); // eliminate the dropdown menu
+    // dropdown cell needs to change to complete, waiting
+    var dd = '<div class="dropdown">\n' +
+        '              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">In Session\n' +
+        '                <span class="caret"></span></button>\n' +
+        '              <ul class="dropdown-menu">\n' +
+        '                <li><a class="status" data-stat="complete" data-appointment-id="' +appt_id+ '">Complete</a></li>\n' +
+        '                <li><a class="status" data-stat="waiting" data-appointment-id="' +appt_id+ '">Checked In</a></li>\n' +
+        '              </ul>\n' +
+        '            </div>\n' ;
+    $ddTd.append(dd)
+    $body.append($rowElt);
+  }
+
 
   function statusUpdate (aElt, appointmentId, newStatus) {
-    if (!((newStatus === 'complete' || newStatus === 'absent') &&
-        confirm("Please confirm status setting of " + newStatus)))
-      return;
     saveStat(appointmentId, newStatus);
-    // TODO remove table row and insert in correct table
-    // remove the table row holding this <a>
-    // depending on the status:
-    // exam: put in Exam table
-    // waiting: put in Waiting table
-    // complete: remove
-    // absent: remove
-    var row = aElt.closest("tr");
-    if (newStatus === "complete")
-      row.remove();
 
+    // if status is complete, remove the row
+    var $row = aElt.closest("tr");
+    if (newStatus === "complete")
+      $row.remove();
+    else if (newStatus === 'waiting') {
+      $row.remove();
+      moveToWaiting($row)
+    }
+    else if (newStatus === 'exam') {
+      $row.remove();
+      moveToExam( $row)
+    }
   }
 
   $( document ).ready(function () {
-    $('a.status').on('click', function () {
+    // status dropdown items click handling
+    $(document).on('click', '.status', function () {
       var $e = $(this);
-      statusUpdate($e, $e.attr('data-appointment-id'), $e.attr('data-stat'));
+      var stat = $e.data('stat');
+      var proceed = true;
+      if (stat === 'complete')
+          proceed = confirm("Proceed with status change to " + $e.text());
+      if (proceed) {
+        $e.parents(".dropdown").find('.btn').html($e.text() + ' <span class="caret"></span>');
+        $e.parents(".dropdown").find('.btn').val($e.data('stat'));
+        statusUpdate($e, $e.attr('data-appointment-id'), $e.data('stat'));
+      }
     });
+
 
   });
 
@@ -58,10 +104,12 @@
 
 <h3>In Exam Rooms</h3>
   <table class="table table-bordered">
-    <thead><th>time</th><th>duration</th><th>First</th><th>Last</th><th>Reason</th><th>Action</th></thead>
+    <thead><th>time</th><th>duration</th><th>First</th><th>Last</th><th>Reason</th><th>Status</th></thead>
+    <tbody id="examTableBody">
     {% for a in appointments %}
       {% if a.status == 'In Session' %}
-        <tr>
+
+        <tr data-appointment-id="{{ a.appointment_id }}">
           <td>{{a.scheduled_time_12hr}}</td>
           <td></td>
           <td>{{a.first_name}}</td>
@@ -69,27 +117,27 @@
           <td>{{a.reason}}</td>
           <td>
             <div class="dropdown">
-              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
+              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">{{ a.status }}
                 <span class="caret"></span></button>
               <ul class="dropdown-menu">
-                <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">Not present</a></li>
-                <li><a class="status" data-stat="exam" data-appointment-id="{{ a.appointment_id }}">Admit to Exam</a></li>
-                <li><a class="status" data-stat="complete" data-appointment-id="{{ a.appointment_id }}">Appointment Complete</a></li>
-                <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Return to Waiting Room</a></li>
+                <li><a class="status" data-stat="complete" data-appointment-id="{{ a.appointment_id }}">Complete</a></li>
+                <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Checked In</a></li>
               </ul>
             </div>
           </td>
         </tr>
       {% endif %}
     {% endfor %}
+    </tbody>
   </table>
 
 <h3>In Waiting Room</h3>
   <table class="table table-bordered">
-    <thead><th>time</th><th>overtime</th><th>First</th><th>Last</th><th>Reason</th><th>Action</th></thead>
+    <thead><th>time</th><th>overtime</th><th>First</th><th>Last</th><th>Reason</th><th>Status</th></thead>
+    <tbody id="waitingTableBody">
     {% for a in appointments %}
-      {% if a.status == 'Checked In' %}
-        <tr>
+      {% if a.status == 'Checked In' or a.status == 'No Show'%}
+        <tr data-appointment-id="{{ a.appointment_id }}">
           <td>{{a.scheduled_time_12hr}}</td>
           <td></td>
           <td>{{a.first_name}}</td>
@@ -97,45 +145,32 @@
           <td>{{a.reason}}</td>
           <td>
             <div class="dropdown">
-              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
+              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">{{ a.status }}
                 <span class="caret"></span></button>
               <ul class="dropdown-menu">
-                <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">Not present</a></li>
-                <li><a class="status" data-stat="exam" data-appointment-id="{{ a.appointment_id }}">Admit to Exam</a></li>
-                <li><a class="status" data-stat="complete" data-appointment-id="{{ a.appointment_id }}">Appointment Complete</a></li>
-                <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Return to Waiting Room</a></li>
+                <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">No Show</a></li>
+                <li><a class="status" data-stat="exam" data-appointment-id="{{ a.appointment_id }}">In Session</a></li>
               </ul>
             </div>
           </td>
         </tr>
       {% endif %}
     {% endfor %}
+    </tbody>
   </table>
 
 <h3>Later Appointments</h3>
     <table class="table table-bordered">
-      <thead><th>time</th><th>First</th><th>Last</th><th>Reason</th><th>Status</th><th>Action</th></thead>
+      <thead><th>time</th><th></th><th>First</th><th>Last</th><th>Reason</th><th>Status</th></thead>
     {% for a in appointments %}
       {% if a.status != 'Checked In' and a.status != 'In Session'%}
             <tr>
                 <td>{{a.scheduled_time_12hr}}</td>
+                <td></td>
                 <td>{{a.first_name}}</td>
                 <td>{{a.last_name}}</td>
                 <td>{{a.reason}}</td>
-                <td>{{a.status}}</td>
-                <td>
-                  <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select
-                      <span class="caret"></span></button>
-                    <ul class="dropdown-menu">
-                      <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">Not present</a></li>
-                      <li><a class="status" data-stat="exam" data-appointment-id="{{ a.appointment_id }}">Admit to Exam</a></li>
-                      <li><a class="status" data-stat="complete" data-appointment-id="{{ a.appointment_id }}">Appointment Complete</a></li>
-                      <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Return to Waiting Room</a></li>
-                    </ul>
-                  </div>
-                </td>
-
+                <td>{{ a.status }}</td>
             </tr>
       {% endif %}
     {% endfor %}

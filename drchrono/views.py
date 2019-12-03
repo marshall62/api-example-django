@@ -42,7 +42,7 @@ class DoctorSchedule(TemplateView):
         kwargs = super(DoctorSchedule, self).get_context_data(**kwargs)
         doc = Doctor()
         appts = Appointments(doc)
-        today_appts = appts.get_appointments_for_date()
+        today_appts = appts.get_active_appointments_for_date()
         kwargs['doctor'] = doc
         kwargs['appointments'] = today_appts
         return kwargs
