@@ -50,12 +50,36 @@ class Appointment(APIObj):
     def status (self):
         return self._data['status']
 
+    # TODO change this.  A setter shouldn't make API call
     @status.setter
     def status (self, status):
         self._data_update_persist('status', status) # persist status change via API
 
+    @property
+    def status_transitions (self):
+        return self._data['status_transitions']
+
+    @property
+    def checkin_time (self):
+        for trans in self.status_transitions:
+            if trans['to_status'] == 'Checked In':
+                return trans['datetime']
+        return None
+
+    @property
+    def exam_starttime (self):
+        for trans in self.status_transitions:
+            if trans['to_status'] == 'In Session':
+                return trans['datetime']
+        return None
+
 
     def __repr__ (self):
-        return "<Appointment {} {} {}>".format(self.patient_id, self.scheduled_time, self.status)
+        if self.status == 'Checked In':
+            return "<Appointment {} {} {} @ {}>".format(self.patient_id, self.scheduled_time, self.status, self.checkin_time)
+        elif self.status == 'In Session':
+            return "<Appointment {} {} {} @ {}>".format(self.patient_id, self.scheduled_time, self.status, self.exam_starttime)
+        else:
+            return "<Appointment {} {} {}>".format(self.patient_id, self.scheduled_time, self.status)
 
 

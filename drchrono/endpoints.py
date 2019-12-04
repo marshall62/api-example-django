@@ -189,6 +189,7 @@ class PatientEndpoint(BaseEndpoint):
         params = params or {}
         params['first_name'] = first_name
         params['last_name'] = last_name
+        params['page_size'] = 250
         patients = super(PatientEndpoint, self).list(params, **kwargs)
         if ssn4:
             return [p for p in patients if p['social_security_number'][-4:] == ssn4]
@@ -204,12 +205,13 @@ class AppointmentEndpoint(BaseEndpoint):
         return super(AppointmentEndpoint, self).update(id=id, data=data, partial=partial, **kwargs)
 
     # Special parameter requirements for a given resource should be explicitly called out
-    def list(self, params=None, date=None, start=None, end=None, **kwargs):
+    def list(self, params=None, date=None, start=None, end=None, verbose=False, **kwargs):
         """
         List appointments on a given date, or between two dates
         """
         # Just parameter parsing & checking
         params = params or {}
+        params['page_size'] = 250
         if start and end:
             date_range = "{}/{}".format(start, end)
             params['date_range'] = date_range
@@ -217,6 +219,8 @@ class AppointmentEndpoint(BaseEndpoint):
             params['date'] = date
         if 'date' not in params and 'date_range' not in params:
             raise Exception("Must provide either start & end, or date argument")
+        if verbose:
+            params['verbose'] = True
         return super(AppointmentEndpoint, self).list(params, **kwargs)
 
 class OfficeEndpoint(BaseEndpoint):

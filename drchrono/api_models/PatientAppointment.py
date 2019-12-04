@@ -43,6 +43,14 @@ class PatientAppointment:
         return self._appointment.duration
 
     @property
+    def checkin_time (self):
+        return self._appointment.checkin_time
+
+    @property
+    def exam_starttime (self):
+        return self._appointment.exam_starttime
+
+    @property
     def scheduled_time (self):
         return self._appointment.scheduled_time
 
@@ -72,5 +80,5 @@ class PatientAppointment:
             return status
 
     def __repr__ (self):
-        return "<PatientAppointment {} {} {} {}>".format(self.first_name, self.last_name,self.scheduled_time,self.status)
+        return "<PatientAppointment {} {}>".format(self.patient.__repr__(), self.appointment.__repr__())
 

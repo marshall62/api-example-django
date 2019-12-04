@@ -1,6 +1,6 @@
 from drchrono.endpoints import PatientEndpoint
-from api_models.APIObj import APIObj
-from api_models.Patient import Patient
+from drchrono.api_models.APIObj import APIObj
+from drchrono.api_models.Patient import Patient
 
 class Patients(APIObj):
 

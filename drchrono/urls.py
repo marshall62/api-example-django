@@ -21,4 +21,4 @@ urlpatterns = [
 #TODO this runs while doing things like migrate.  Need to put a conditional in front of this so it only does it when running.
 
 # gets all the doctors appointments and builds our local db PatientAppointment table.
-Appointments().load_all_appointments()
+# Appointments().load_all_appointments()

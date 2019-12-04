@@ -3,7 +3,8 @@
 {% block page-js %}
   <script language="javascript">
 
-  var clock = new Date.now();
+  var clock = Date.now();
+
 
   function saveStat (appt_id, status) {
     var data = new FormData();
@@ -49,6 +50,25 @@
 
   }
 
+  function alterExamRowTime ($row) {
+    // store the cur time as the exam starttime in the row data
+    $row.attr('data-exam-starttime', new Date().toISOString());
+    // make the time-waited td be a duration td set to 0
+    var $td = $row.find('.time-waited');
+    $td.html('');
+    $td.attr('class', 'duration');
+  }
+
+  function alterWaitingRowTime ($row) {
+    // store the cur time as the checkin time stored in row data
+    $row.attr('data-checkin-time', new Date().toISOString());
+    // if the row has a .duration td get rid of it and replace with a time-waited
+    var $durtd = $row.find('.duration');
+    if ($durtd) {
+      $durtd.html('');
+      $durtd.attr('class', 'time-waited');
+    }
+  }
 
   function statusUpdate (aElt, appointmentId, newStatus) {
     saveStat(appointmentId, newStatus);
@@ -59,12 +79,57 @@
       $row.remove();
     else if (newStatus === 'waiting') {
       $row.remove();
+      // TODO: Some ugliness here because I've allowed patients in exam to be sent back to waiting.
+      // It means the duration td needs to be changed back to a time-waited td with a 0
+      alterWaitingRowTime($row);
       moveToTable($row, $('#waitingTableBody'), {'exam': 'In Session', 'absent': 'No Show'}, 'Checked In')
     }
     else if (newStatus === 'exam') {
       $row.remove();
+      alterExamRowTime($row); // change the time-waited td to a duration td
       moveToTable($row, $('#examTableBody'), {'complete': 'Complete', 'waiting': 'Checked In'}, 'In Session')
     }
+  }
+
+  function calcElapsedTime (startTime) {
+    var ms = Date.now()- Date.parse(startTime);
+    // want as minutes
+    return Math.round(ms / (60 * 1000));
+  }
+
+  // The .time-waited td holds how long patient has been in waiting rm.  The timestamp of when status became Checked In is
+  // held in the tr's data-checkin-time.  We compute the time diff between now and checkin time and put this in the time-waited td.
+  function updateWaitingTableTimes () {
+    $('#waitingTableBody tr').each(function () {
+      var checkinTime = $(this).data('checkin-time');  // rows in waiting table have checkin-time in yyyy-mm-ddThh:mm:ss format
+      var scheduledTime = $(this).data('scheduled-time');  // rows in waiting table have scheduled-time in yyyy-mm-ddThh:mm:ss format
+      var timeSinceCheckin = calcElapsedTime(checkinTime); // TODO Maybe this shouldn't matter.  Ignore showing.
+      var timeBehindSchedule = calcElapsedTime(scheduledTime);
+      if (timeBehindSchedule > 0)
+        // show as time-behind-scheduled/time-since-checkin
+        $(this).find('.time-waited').html(timeBehindSchedule); // set content of the time-waited td to minutes
+
+    })
+  }
+
+  // The .duration td holds how long patient has been in exam rm.  The timestamp of when status became Checked In is
+  // held in the tr's data-checkin-time.  We compute the time diff between now and checkin time and put this in the time-waited td.
+  function updateExamTableTimes () {
+    $('#examTableBody tr').each(function () {
+      var starttime = $(this).data('exam-starttime');  // rows in exam table have start times in yyyy-mm-ddThh:mm:ss format
+      elapsedTimeMin = calcElapsedTime(starttime);
+      $(this).find('.duration').html(elapsedTimeMin); // set content of the duration td to minutes
+
+    })
+  }
+
+  // Cycle through the exam table rows updating each duration
+  // Cycle through the waiting table rows updating each overtime
+  // happens on an interval of every 60 seconds.
+  function updateTimes () {
+    console.log("updating times");
+    updateWaitingTableTimes();
+    updateExamTableTimes();
   }
 
   $( document ).ready(function () {
@@ -82,6 +147,8 @@
       }
     });
 
+    setInterval(updateTimes, 10*1000);
+
 
   });
 
@@ -98,9 +165,9 @@
     {% for a in appointments %}
       {% if a.status == 'In Session' %}
 
-        <tr data-appointment-id="{{ a.appointment_id }}">
+        <tr data-appointment-id="{{ a.appointment_id }}" data-exam-starttime="{{ a.exam_starttime }}">
           <td>{{a.scheduled_time_12hr}}</td>
-          <td></td>
+          <td class="duration" ></td>
           <td>{{a.first_name}}</td>
           <td>{{a.last_name}}</td>
           <td>{{a.reason}}</td>
@@ -122,13 +189,13 @@
 
 <h3>In Waiting Room</h3>
   <table class="table table-bordered">
-    <thead><th>time</th><th>overtime</th><th>First</th><th>Last</th><th>Reason</th><th>Status</th></thead>
+    <thead><th>time</th><th>Waiting time</th><th>First</th><th>Last</th><th>Reason</th><th>Status</th></thead>
     <tbody id="waitingTableBody">
     {% for a in appointments %}
       {% if a.status == 'Checked In' or a.status == 'No Show'%}
-        <tr data-appointment-id="{{ a.appointment_id }}">
+        <tr data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}" data-checkin-time="{{ a.checkin_time }}">
           <td>{{a.scheduled_time_12hr}}</td>
-          <td></td>
+          <td class="time-waited"></td>
           <td>{{a.first_name}}</td>
           <td>{{a.last_name}}</td>
           <td>{{a.reason}}</td>

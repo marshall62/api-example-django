@@ -27,7 +27,7 @@ class Appointments(APIObj):
         params = {'doctor': self._doctor.id}
         if patient_id:
             params['patient'] = patient_id
-        today_appts = self._endpoint.list(params=params, date=today_ymd)
+        today_appts = self._endpoint.list(params=params, verbose=True, date=today_ymd)
         result = [] #type: List[api.PatientAppointment]
         count = 0
         for a in today_appts:
@@ -36,7 +36,7 @@ class Appointments(APIObj):
             pa = api.PatientAppointment(patient=pat, appointment=appt)
             count += 1
             result.append(pa)
-        return result
+        return sorted(result, key=lambda pa: pa.scheduled_time)
 
     @staticmethod
     def is_active (appt):
@@ -45,13 +45,13 @@ class Appointments(APIObj):
     def get_active_appointments_for_date (self, date=datetime.date.today(), patient_id=None):
         '''
         gets all the appointments for the date leaving out canceled and complete ones.
-        :return: List[PatientAppointment] objects for today
+        :return: List[PatientAppointment] objects for today sorted by scheduled time
         '''
         today_ymd = date.strftime('%Y-%m-%d')
         params = {'doctor': self._doctor.id}
         if patient_id:
             params['patient'] = patient_id
-        today_appts = self._endpoint.list(params=params, date=today_ymd)
+        today_appts = self._endpoint.list(params=params, verbose=True, date=today_ymd)
         result = [] #type: List[api.PatientAppointment]
         count = 0
         for a in today_appts:
@@ -61,7 +61,7 @@ class Appointments(APIObj):
                 pa = api.PatientAppointment(patient=pat, appointment=appt)
                 count += 1
                 result.append(pa)
-        return result
+        return sorted(result, key=lambda pa: pa.scheduled_time)
 
     def get_appointments_for_patient (self, patient_id, date=datetime.date.today()):
         return self.get_appointments_for_date(date=date, patient_id=patient_id)

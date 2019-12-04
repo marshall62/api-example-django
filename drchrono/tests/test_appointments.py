@@ -2,13 +2,14 @@ import pytest
 import datetime
 from itertools import cycle
 from .api_access import get_access_tok
-from api_models.Doctor import Doctor
-from api_models.Appointment import Appointment
+from drchrono.api_models.Doctor import Doctor
+from drchrono.api_models.Appointment import Appointment
 from drchrono.sched.Appointments import Appointments
 from drchrono.sched.Patients import Patients
-from api_models.PatientAppointment import PatientAppointment
+from drchrono.api_models.PatientAppointment import PatientAppointment
 from drchrono.endpoints import AppointmentEndpoint
 import drchrono.dates as dateutil
+import random
 
 
 class TestAppointments:
@@ -21,16 +22,34 @@ class TestAppointments:
 
 
     def test_get_all_appts (self):
-        access_tok = get_access_tok()
-        ep = AppointmentEndpoint(access_tok)
-        d = datetime.date.today()
-        dt = dateutil.timestamp_api_format(d)
-        # gets all appointments held by this doctor
-        alist = list(ep.list(date=dt, params={'doctor': TestAppointments.doctor.id}))
-        for a in alist:
-            print(a)
-        print (len(alist))
-        assert len(alist) > 0
+        pa_list = Appointments().get_appointments_for_date()
+        for pa in pa_list:
+            a = pa.appointment
+            assert None != a.status_transitions # status change history (useful)
+            print(pa)
+        print (len(pa_list))
+        assert len(pa_list) > 0
+
+    def test_set_all_appts_status (self):
+        '''
+        Put some reasonable statuses on todays appointments.
+        :return:
+        '''
+        pa_list = Appointments().get_appointments_for_date()
+        for pa in pa_list:
+            v = random.random()
+            if v < 0.1:
+                pa.status = 'In Session'
+            elif v < 0.4:
+                pa.status = 'Checked In'
+            else:
+                pa.status = ''
+
+        pa_list = Appointments().get_appointments_for_date()
+        for pa in pa_list:
+            print(pa)
+
+        assert len(pa_list) > 0
 
 
     @pytest.mark.skip
@@ -90,13 +109,14 @@ class TestAppointments:
         assert found, "Created appointment was not found when looking up patients appointments"
 
     @pytest.mark.skip
-    def test_create_10_appointments (self):
+    def test_create_N_appointments (self):
         '''
-        Create 10 appointments at random times today for different patients
+        Create N appointments at random times today for different patients
         Will use this to test UI.
         :return:
         '''
         patients = TestAppointments.patients
+        N = 20
         count = 0
         ts = datetime.datetime.now()
         appointment_ids = []
@@ -110,7 +130,7 @@ class TestAppointments:
             print(json)
             appointment_ids.append(json['id'])
             count += 1
-            if count >= 10:
+            if count >= N:
                 break
 
         assert 10 == len(appointment_ids)
