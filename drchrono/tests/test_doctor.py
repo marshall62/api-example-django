@@ -1,4 +1,4 @@
-from drchrono.models.Doctor import Doctor
+from api_models.Doctor import Doctor
 from drchrono.sched.Patients import Patients
 from drchrono.endpoints import DoctorEndpoint
 from .api_access import get_access_tok
@@ -19,5 +19,5 @@ def test_doc_obj ():
 def test_doc_patients ():
     d = Doctor()
     pf = Patients(d)
-    assert len(pf.patients) == 16
+    assert len(pf.patients) > 0
 

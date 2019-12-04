@@ -23,3 +23,6 @@ class PatientInfoForm (forms.Form):
     date_of_birth = forms.DateField(required=False)
     gender = forms.CharField()
     address = forms.CharField(required=False)
+    recent_changes = forms.CharField(widget=forms.Textarea,
+                                     label='Describe any recent changes to your health',
+                                     required=False)

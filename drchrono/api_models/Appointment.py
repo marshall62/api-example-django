@@ -1,6 +1,6 @@
 from drchrono.endpoints import AppointmentEndpoint
-from drchrono.models.APIObj import APIObj
-from drchrono.models.Doctor import Doctor
+from drchrono.api_models.APIObj import APIObj
+from drchrono.api_models.Doctor import Doctor
 
 class Appointment(APIObj):
     '''
@@ -41,6 +41,10 @@ class Appointment(APIObj):
     @property
     def reason (self):
         return self._data['reason']
+
+    @property
+    def duration (self):
+        return self._data['duration']
 
     @property
     def status (self):

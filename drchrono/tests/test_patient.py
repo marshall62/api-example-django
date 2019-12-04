@@ -1,6 +1,6 @@
 import pytest
-from drchrono.models.Patient import Patient
-from drchrono.models.Doctor import Doctor
+from api_models.Patient import Patient
+from api_models.Doctor import Doctor
 from drchrono.sched.Patients import Patients
 from drchrono.endpoints import PatientEndpoint
 from drchrono.exc.exceptions import NotFoundException, NonUniqueException

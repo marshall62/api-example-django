@@ -46,7 +46,7 @@ clone git repo
 1. Create venv with IDE using python 3.5+ base interpreter
 2. Goto project settings and set source dir as drchrono
 3. Open any .py file so that popup comes up offering to install dependencies and accept installing
-4. Drop down to venv shell and "python run migrate" to get db set up
+4. Drop down to venv shell and "python manage.py migrate" to get db set up
 5. Create a run config called "run-server" with script of manage.py parameters:runserver 8080 and the two environment vars/vals below (for my user marshall62 running on localhost:8080)
 
         <env name="SOCIAL_AUTH_CLIENT_ID" value="abqHNtcyOZWxqFM9Cu1QyzFL8UoyjdrjpP0YXYnM" />

@@ -148,4 +148,3 @@ LOGGING = {
     },
 }
 
-print("Done loading settings.py")

@@ -1,5 +1,3 @@
-from drchrono.models import Patient
-from drchrono.models import Appointment
 from drchrono import dates
 class PatientAppointment:
 
@@ -39,6 +37,10 @@ class PatientAppointment:
     @property
     def scheduled_time_12hr (self):
         return dates.time_format(self._appointment.scheduled_time)
+
+    @property
+    def duration (self):
+        return self._appointment.duration
 
     @property
     def scheduled_time (self):

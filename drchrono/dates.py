@@ -11,3 +11,11 @@ def time_format(dt_str):
 def timestamp_api_format (dt):
     '''Convert a date to a timestamp in the format the API wants it yyyy-mm-ddThh:mm:ss'''
     return dt.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def apidt_to_ts (dt_str):
+    ymd, t = dt_str.split('T')
+    y,m,d = ymd.split('-')
+    h,min,s = t.split(':')
+    dt = datetime.datetime(int(y), int(m), int(d),int(h),int(min),int(s))
+    return dt

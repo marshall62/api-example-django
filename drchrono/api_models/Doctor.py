@@ -1,5 +1,5 @@
 from drchrono.endpoints import DoctorEndpoint, OfficeEndpoint
-from drchrono.models.APIObj import APIObj
+from drchrono.api_models.APIObj import APIObj
 
 
 class Doctor(APIObj):

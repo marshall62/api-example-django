@@ -1,5 +1,5 @@
 from drchrono.endpoints import PatientEndpoint
-from drchrono.models.APIObj import APIObj
+from drchrono.api_models.APIObj import APIObj
 from drchrono.exc.exceptions import NonUniqueException, NotFoundException
 
 

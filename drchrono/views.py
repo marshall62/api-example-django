@@ -2,16 +2,14 @@ from django.views.generic import TemplateView, FormView, View
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from drchrono.models.Doctor import Doctor
-from drchrono.models.Appointment import Appointment
+from drchrono.api_models.Doctor import Doctor
+from drchrono.api_models.Appointment import Appointment
 from drchrono.sched.Appointments import Appointments
-from drchrono.models.Patient import Patient
+from drchrono.api_models.Patient import Patient
 from drchrono.forms import CheckinForm, PatientInfoForm
 import django.forms.forms
 from django.forms.utils import ErrorList
 
-from drchrono.exc.exceptions import NonUniqueException, NotFoundException
-from django import forms
 
 def updateAppointmentStatus (request, appointment_id):
     if request.method == 'POST':
@@ -93,6 +91,25 @@ class CheckinView(FormView):
 
 
     def checkin_patient (self, form):
+        '''
+        Check in a patient.
+        Assumptions:  Patient may have more than one appointment today.  Any appointments with status != Complete or Cancelled
+        will be marked as status = Checked In.
+
+        Issues:  If the patient has many appointments it would make sense to complete the first, and perhaps return
+        to the waiting room.  This is handled correctly because that next appointment is marked as Checked In.
+
+        If however, there is a large gap between appts, the patient probably leaves after completing the first one.
+        For the next appt, s/he is marked Checked In which is now an inaccurate reflection of reality.
+        Two possible outcomes follow:
+            -S/He doesn't show up (at all or on time):  Dr will mark as no-show
+            -S/He arrives back in time: Dr admits and completes.
+
+        So marking all appointments as Checked In seems to work well for this odd (rare) multiple-appt use-case
+        :param form:
+        :return:
+        '''
+
         valid_data = form.cleaned_data
         fname = valid_data['first_name']
         lname = valid_data['last_name']
@@ -100,7 +117,12 @@ class CheckinView(FormView):
 
         p = Patient(first_name=fname, last_name=lname, ssn4=ssn4)
         # TODO SHould we verify that this patient has an appointment today and that they have arrived in neighborhood of scheduled time?
-        p.status = 'Checked In' # this could generate an error that isn't processed correctly
+        pf = Appointments()
+        # get all active appointments for this patient today and set status to Checked In
+        patient_appts = pf.get_appointments_for_patient(patient_id=p.id)
+        for appt in patient_appts:
+            if Appointments.is_active(appt):
+                appt.status = 'Checked In'
         return p
 
 
@@ -110,9 +132,23 @@ class CheckinView(FormView):
 class PatientInfoView (FormView):
     form_class = PatientInfoForm
     template_name = 'patient_info.html'
-    success_url = reverse_lazy('patientCheckIn')
+    success_url = reverse_lazy('kiosk')
 
     def get(self, request, patient_id):
         p = Patient(id=patient_id)
         f = self.form_class(p.data)
         return render(request, self.template_name, {'fname': p.first_name, 'form': f})
+
+    def post(self, request, patient_id):
+        # TODO would like to include question about Are there any recent health changes we should
+        # know about today?  - Answer would be appended to the appt.reason  field
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            recent_chg = form.cleaned_data['recent_changes']
+            if recent_chg:
+                # TODO find first active future appt for this patient today and append this to the reason field.
+                pass
+            return redirect(self.success_url)
+        else:
+            render(request, self.template_name,{'form': form})
+

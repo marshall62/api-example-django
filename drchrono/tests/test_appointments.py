@@ -2,11 +2,11 @@ import pytest
 import datetime
 from itertools import cycle
 from .api_access import get_access_tok
-from drchrono.models.Doctor import Doctor
-from drchrono.models.Appointment import Appointment
+from api_models.Doctor import Doctor
+from api_models.Appointment import Appointment
 from drchrono.sched.Appointments import Appointments
 from drchrono.sched.Patients import Patients
-from drchrono.models.PatientAppointment import PatientAppointment
+from api_models.PatientAppointment import PatientAppointment
 from drchrono.endpoints import AppointmentEndpoint
 import drchrono.dates as dateutil
 
@@ -27,6 +27,8 @@ class TestAppointments:
         dt = dateutil.timestamp_api_format(d)
         # gets all appointments held by this doctor
         alist = list(ep.list(date=dt, params={'doctor': TestAppointments.doctor.id}))
+        for a in alist:
+            print(a)
         print (len(alist))
         assert len(alist) > 0
 
@@ -87,7 +89,7 @@ class TestAppointments:
                 found = True
         assert found, "Created appointment was not found when looking up patients appointments"
 
-    # @pytest.mark.skip
+    @pytest.mark.skip
     def test_create_10_appointments (self):
         '''
         Create 10 appointments at random times today for different patients
