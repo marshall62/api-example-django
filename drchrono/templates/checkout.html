@@ -2,7 +2,7 @@
 {% block body %}
 
 <form action="." method="POST">
-  <h3>Hello.  Please check in or out:</h3>
+  <h3>Thanks for checking out.  Please take a moment to let us know how we did:</h3>
   <br><br>
   {% csrf_token %}
   {%  if form.errors  %}
@@ -13,7 +13,6 @@
     {{ form.as_table }}
   </table>
   <br><br>
-  <input  class="btn btn-primary" name='checkin' value="I am checking IN" type="submit"/>
-  <input  class="btn btn-primary" name='checkout' value="I am checking OUT" type="submit"/>
+  <button class="btn btn-primary" type="submit">Submit</button>
 </form>
 {% endblock %}

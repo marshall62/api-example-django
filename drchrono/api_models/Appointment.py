@@ -42,9 +42,18 @@ class Appointment(APIObj):
     def reason (self):
         return self._data['reason']
 
+    @reason.setter
+    def reason (self, reason):
+        self._data['reason'] = reason
+
     @property
     def duration (self):
         return self._data['duration']
+
+    @duration.setter
+    def duration (self, duration):
+        self._data['duration'] = duration
+
 
     @property
     def status (self):

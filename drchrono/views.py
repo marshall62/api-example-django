@@ -6,7 +6,7 @@ from drchrono.api_models.Doctor import Doctor
 from drchrono.api_models.Appointment import Appointment
 from drchrono.sched.Appointments import Appointments
 from drchrono.api_models.Patient import Patient
-from drchrono.forms import CheckinForm, PatientInfoForm
+from drchrono.forms import CheckinForm, PatientInfoForm, CheckoutSurveyForm
 import django.forms.forms
 from django.forms.utils import ErrorList
 
@@ -69,7 +69,8 @@ class CheckinView(FormView):
     form_class = CheckinForm
     template_name = 'checkin.html'
     # success_url = reverse_lazy('patient_info')
-    success_url = 'patientInfo'
+    checkin_success_url = 'patientInfo'
+    checkout_success_url = 'checkout'
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
@@ -78,17 +79,31 @@ class CheckinView(FormView):
     def post (self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            try:
-                pat = self.checkin_patient(form)
+            if request.POST.get('checkin'):
+                try:
+                    pat = self.checkin_patient(form)
+                    if pat:
+                        return redirect(self.checkin_success_url,
+                                        patient_id=pat.id)
+                except Exception as e:
+                    print(e)
+                    form.errors[django.forms.forms.NON_FIELD_ERRORS] = ErrorList([e.__str__()])
+            else:
+                pat = self.get_patient(form)
                 if pat:
-                    return redirect(self.success_url,
+                    return redirect(self.checkout_success_url,
                                     patient_id=pat.id)
-            except Exception as e:
-                print(e)
-                form.errors[django.forms.forms.NON_FIELD_ERRORS] = ErrorList([e.__str__()])
         return render(request, self.template_name, {'form': form})
 
 
+
+    def get_patient (self, form):
+        valid_data = form.cleaned_data
+        fname = valid_data['first_name']
+        lname = valid_data['last_name']
+        ssn4 = valid_data['ssn4']
+        p = Patient(first_name=fname, last_name=lname, ssn4=ssn4)
+        return p
 
     def checkin_patient (self, form):
         '''
@@ -109,13 +124,8 @@ class CheckinView(FormView):
         :param form:
         :return:
         '''
+        p = self.get_patient(form)
 
-        valid_data = form.cleaned_data
-        fname = valid_data['first_name']
-        lname = valid_data['last_name']
-        ssn4 = valid_data['ssn4']
-
-        p = Patient(first_name=fname, last_name=lname, ssn4=ssn4)
         # TODO SHould we verify that this patient has an appointment today and that they have arrived in neighborhood of scheduled time?
         pf = Appointments()
         # get all active appointments for this patient today and set status to Checked In
@@ -152,3 +162,16 @@ class PatientInfoView (FormView):
         else:
             render(request, self.template_name,{'form': form})
 
+
+class CheckoutSurveyView(FormView):
+    form_class = CheckoutSurveyForm
+    template_name = 'checkout.html'
+    success_url = reverse_lazy('kiosk')
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request,self.template_name, {'form': form})
+
+    def post (self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        return redirect(self.success_url)

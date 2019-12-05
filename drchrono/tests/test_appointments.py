@@ -119,21 +119,16 @@ class TestAppointments:
         N = 20
         count = 0
         ts = datetime.datetime.now()
-        appointment_ids = []
+        appointments = []
         for p in cycle(patients):
             # add 30 minutes to timestamp for each new appointment
-            a = Appointment(doctor=TestAppointments.doctor, data={})
             ts = ts + datetime.timedelta(minutes=30)
-            a.scheduled_time = dateutil.timestamp_api_format(ts)
-            a.patient_id = p.id
-            json = a.create() # save to API
-            print(json)
-            appointment_ids.append(json['id'])
+            a = Appointments.make_appointment_for_patient(patient=p,date=ts,duration=30,reason="for testing")
+            appointments.append(a)
             count += 1
-            if count >= N:
+            if count == N:
                 break
-
-        assert 10 == len(appointment_ids)
+        assert N == len(appointments)
 
 
     @pytest.mark.skip

@@ -90,11 +90,38 @@
       moveToTable($row, $('#examTableBody'), {'complete': 'Complete', 'waiting': 'Checked In'}, 'In Session')
     }
   }
+  function toHM (mins, addColor=false) {
+    var h = Math.floor(mins / 60);
+    var mins = mins % 60;
+    var res = "";
+    if (h >= 1)
+      res += h + ":";
+    if (mins >= 10)
+      res += mins.toString();
+    else if (h >= 1)
+      res += "0" + mins.toString();
+    else
+      res += mins.toString();
+    if (addColor) {
+      var color = 'red';
+      if (h < 1 && mins < 20 && mins > 15)
+        color = 'orange';
+      else if (h < 1 && mins < 15)
+        color = 'black';
+      return "<font color='" + color + "'>" + res + "</font>"
 
+    }
+    else
+      return res;
+
+  }
+
+  // return the elapsed time as HH:MM string
   function calcElapsedTime (startTime) {
     var ms = Date.now()- Date.parse(startTime);
     // want as minutes
-    return Math.round(ms / (60 * 1000));
+    var mins = Math.round(ms / (60 * 1000));
+    return mins;
   }
 
   // The .time-waited td holds how long patient has been in waiting rm.  The timestamp of when status became Checked In is
@@ -107,7 +134,7 @@
       var timeBehindSchedule = calcElapsedTime(scheduledTime);
       if (timeBehindSchedule > 0)
         // show as time-behind-scheduled/time-since-checkin
-        $(this).find('.time-waited').html(timeBehindSchedule); // set content of the time-waited td to minutes
+        $(this).find('.time-waited').html(toHM(timeBehindSchedule, true)); // set content of the time-waited td to minutes
 
     })
   }
@@ -118,7 +145,7 @@
     $('#examTableBody tr').each(function () {
       var starttime = $(this).data('exam-starttime');  // rows in exam table have start times in yyyy-mm-ddThh:mm:ss format
       elapsedTimeMin = calcElapsedTime(starttime);
-      $(this).find('.duration').html(elapsedTimeMin); // set content of the duration td to minutes
+      $(this).find('.duration').html(toHM(elapsedTimeMin)); // set content of the duration td to minutes
 
     })
   }
@@ -160,7 +187,13 @@
 
 <h3>In Exam Rooms</h3>
   <table class="table table-bordered">
-    <thead><th>time</th><th>duration</th><th>First</th><th>Last</th><th>Reason</th><th>Status</th></thead>
+    <thead>
+      <th class="col-sm-1">time</th>
+      <th class="col-sm-1">duration</th>
+      <th class="col-sm-2">First</th>
+      <th class="col-sm-2">Last</th>
+      <th class="col-sm-4">Reason</th>
+      <th class="col-sm-1">Status</th></thead>
     <tbody id="examTableBody">
     {% for a in appointments %}
       {% if a.status == 'In Session' %}
@@ -189,12 +222,19 @@
 
 <h3>In Waiting Room</h3>
   <table class="table table-bordered">
-    <thead><th>time</th><th>Waiting time</th><th>First</th><th>Last</th><th>Reason</th><th>Status</th></thead>
+    <thead>
+      <th class="col-sm-1">time</th>
+      <th class="col-sm-1">Waiting time</th>
+      <th class="col-sm-2">First</th>
+      <th class="col-sm-2">Last</th>
+      <th class="col-sm-5">Reason</th>
+      <th class="col-sm-1">Status</th>
+    </thead>
     <tbody id="waitingTableBody">
     {% for a in appointments %}
       {% if a.status == 'Checked In' or a.status == 'No Show'%}
         <tr data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}" data-checkin-time="{{ a.checkin_time }}">
-          <td>{{a.scheduled_time_12hr}}</td>
+          <td >{{a.scheduled_time_12hr}}</td>
           <td class="time-waited"></td>
           <td>{{a.first_name}}</td>
           <td>{{a.last_name}}</td>
@@ -217,7 +257,14 @@
 
 <h3>Later Appointments</h3>
     <table class="table table-bordered">
-      <thead><th>time</th><th></th><th>First</th><th>Last</th><th>Reason</th><th>Status</th></thead>
+      <thead>
+        <th class="col-sm-1">time</th>
+        <th class="col-sm-1"></th>
+        <th class="col-sm-2">First</th>
+        <th class="col-sm-2">Last</th>
+        <th class="col-sm-5">Reason</th>
+        <th class="col-sm-1">Status</th>
+      </thead>
     {% for a in appointments %}
       {% if a.status != 'Checked In' and a.status != 'In Session'%}
             <tr>

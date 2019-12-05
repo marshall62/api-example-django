@@ -66,6 +66,18 @@ class Appointments(APIObj):
     def get_appointments_for_patient (self, patient_id, date=datetime.date.today()):
         return self.get_appointments_for_date(date=date, patient_id=patient_id)
 
+    @staticmethod
+    def make_appointment_for_patient (patient, date=datetime.date.today(), duration=15, reason=''):
+        a = Appointment()
+        a.scheduled_time = dateutil.timestamp_api_format(date)
+        a.patient_id = patient.id
+        a.duration=duration
+        a.reason=reason
+        json = a.create() # save to API
+        new_a = Appointment(data=json)
+        pa = api.PatientAppointment(patient=patient, appointment=new_a)
+        return pa
+
 
 
     def load_all_appointments (self):
