@@ -1,14 +1,10 @@
 {% extends 'base_ajax.html' %}
 {% block navbar %}
-  <nav class="navbar"  >
-    <div class="container-fluid">
-      <ul class="nav navbar-nav">
-        <li class="active"><a href="{% url 'welcome'%}">Schedule</a></li>
-        <li class="active"><a href="{% url 'setup'%}">Setup</a></li>
-        <li class="active"><a href="{% url 'kiosk'%}">Kiosk</a></li>
-
+<div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="{% url 'welcome'%}">Schedule</a></li>
+        <li><a href="{% url 'setup'%}">Setup</a></li>
+        <li><a href="{% url 'kiosk'%}">Kiosk</a></li>
       </ul>
-
-    </div>
-  </nav>
+</div>
 {% endblock %}
