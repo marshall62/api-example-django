@@ -1,5 +1,4 @@
 from django.views.generic import TemplateView, FormView, View
-from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from drchrono.api_models.Doctor import Doctor
@@ -11,14 +10,7 @@ import django.forms.forms
 from django.forms.utils import ErrorList
 
 
-def updateAppointmentStatus (request, appointment_id):
-    if request.method == 'POST':
-        status = request.POST['status']
-        trans = {'absent': 'No Show', 'complete': 'Complete', 'waiting': 'Checked In', 'exam': 'In Session'}
-        status = trans[status];
-        a = Appointment(id=appointment_id)
-        a.status = status # writes status to appointment API
-        return HttpResponse()
+
 
 
 
@@ -39,8 +31,7 @@ class DoctorSchedule(TemplateView):
     def get_context_data(self, **kwargs):
         kwargs = super(DoctorSchedule, self).get_context_data(**kwargs)
         doc = Doctor()
-        appts = Appointments(doc)
-        today_appts = appts.get_active_appointments_for_date()
+        today_appts = Appointments.get_active_appointments_for_date()
         kwargs['doctor'] = doc
         kwargs['appointments'] = today_appts
         return kwargs
@@ -127,9 +118,8 @@ class CheckinView(FormView):
         p = self.get_patient(form)
 
         # TODO SHould we verify that this patient has an appointment today and that they have arrived in neighborhood of scheduled time?
-        pf = Appointments()
         # get all active appointments for this patient today and set status to Checked In
-        patient_appts = pf.get_appointments_for_patient(patient_id=p.id)
+        patient_appts = Appointments.get_appointments_for_patient(patient_id=p.id)
         for appt in patient_appts:
             if Appointments.is_active(appt):
                 appt.status = 'Checked In'

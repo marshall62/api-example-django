@@ -1,6 +1,8 @@
 from drchrono.endpoints import AppointmentEndpoint
 from drchrono.api_models.APIObj import APIObj
 from drchrono.api_models.Doctor import Doctor
+import datetime
+import drchrono.dates as dateutil
 
 class Appointment(APIObj):
     '''
@@ -20,7 +22,13 @@ class Appointment(APIObj):
             self._data['exam_room'] = 1
             self._data['office'] = doctor.data['office']
 
-
+    @staticmethod
+    def create (patient_id, scheduled_time=None, duration=30, reason='yearly exam'):
+        if not scheduled_time:
+            scheduled_time = dateutil.timestamp_api_format(datetime.date.today())
+        doc = Doctor()
+        data = {'patient': patient_id, 'scheduled_time': scheduled_time, 'duration': str(duration), 'reason': reason, 'exam_room': 1, 'office': doc.office, 'doctor': doc.id}
+        return APIObj._create(data,Appointment,AppointmentEndpoint)
 
     @property
     def patient_id (self):

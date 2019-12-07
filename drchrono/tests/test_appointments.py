@@ -5,7 +5,6 @@ from .api_access import get_access_tok
 from drchrono.api_models.Doctor import Doctor
 from drchrono.api_models.Appointment import Appointment
 from drchrono.sched.Appointments import Appointments
-from drchrono.sched.Patients import Patients
 from drchrono.api_models.PatientAppointment import PatientAppointment
 from drchrono.endpoints import AppointmentEndpoint
 import drchrono.dates as dateutil
@@ -16,17 +15,21 @@ class TestAppointments:
 
     def setup_class(cls):
         cls.doctor = Doctor()
-        cls.pf = Patients(cls.doctor)
-        cls.patients = cls.pf.patients
+        Appointments.set_doctor(cls.doctor)
+        cls.patients = cls.doctor.get_patients()
         cls.patient1 = cls.patients[0]
+
+        # create 1 appt
+        ts = datetime.datetime.now()
+        cls.appt = Appointment.create(patient_id=cls.patient1.id, scheduled_time=dateutil.timestamp_api_format(ts))
 
 
     def test_get_all_appts (self):
-        pa_list = Appointments().get_appointments_for_date()
+        pa_list = Appointments.get_appointments_for_date()
         for pa in pa_list:
             a = pa.appointment
             assert None != a.status_transitions # status change history (useful)
-            print(pa)
+            print(pa.short_repr())
         print (len(pa_list))
         assert len(pa_list) > 0
 
@@ -35,7 +38,7 @@ class TestAppointments:
         Put some reasonable statuses on todays appointments.
         :return:
         '''
-        pa_list = Appointments().get_appointments_for_date()
+        pa_list = Appointments.get_appointments_for_date()
         for pa in pa_list:
             v = random.random()
             if v < 0.1:
@@ -45,7 +48,7 @@ class TestAppointments:
             else:
                 pa.status = ''
 
-        pa_list = Appointments().get_appointments_for_date()
+        pa_list = Appointments.get_appointments_for_date()
         for pa in pa_list:
             print(pa)
 
@@ -54,13 +57,12 @@ class TestAppointments:
 
     @pytest.mark.skip
     def test_appointments (self):
-        af = Appointments(TestAppointments.doctor)
-        all = af.get_appointments_for_date()
+        all = Appointments.get_appointments_for_date()
         for a in all:
             assert type(a) is PatientAppointment
 
         p = TestAppointments.patient1
-        all = af.get_appointments_for_patient(p.id)
+        all = Appointments.get_appointments_for_patient(p.id)
         for a in all:
             assert a.patient_id == p.id
 
@@ -69,14 +71,13 @@ class TestAppointments:
     def test_appt_status_chg (self):
         ''' change the status of the first patients first appointment to No Show'''
         p = TestAppointments.patient1
-        a = Appointments(TestAppointments.doctor)
-        appts = a.get_appointments_for_patient(patient_id=p.id)
+        appts = Appointments.get_appointments_for_patient(patient_id=p.id)
         if len(appts) > 0:
             a1 = appts[0]
             id = a1.appointment_id
             status1 = a1.status
             a1.status = 'No Show' # updates this appt status with API
-            appts = a.get_appointments_for_patient(patient_id=p.id)
+            appts = Appointments.get_appointments_for_patient(patient_id=p.id)
             a1 = appts[0]
             assert id == a1.appointment_id
             assert 'No Show' == a1.status
@@ -108,7 +109,7 @@ class TestAppointments:
                 found = True
         assert found, "Created appointment was not found when looking up patients appointments"
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_create_N_appointments (self):
         '''
         Create N appointments at random times today for different patients
@@ -134,16 +135,15 @@ class TestAppointments:
     @pytest.mark.skip
     def test_appointment_status_empty (self):
 
-        appts = Appointments(TestAppointments.doctor)
         p = TestAppointments.patient1
-        all = appts.get_appointments_for_patient(p.id)
+        all = Appointments.get_appointments_for_patient(p.id)
         orig_statuses = {}
         for a in all:
             appt_id = a.appointment_id
             stat = a.status
             orig_statuses[appt_id] = stat # save the original status
             a.status = '' # will persist it to API
-        all = appts.get_appointments_for_patient(p.id)
+        all = Appointments.get_appointments_for_patient(p.id)
         for a in all:
             stat = a.status
             assert '' == stat

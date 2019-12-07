@@ -20,6 +20,16 @@ class Patient(APIObj):
             super().__init__(endpoint=PatientEndpoint)
 
 
+    @staticmethod
+    def create (first_name, last_name, social_security_number, gender, doctor):
+        return APIObj._create({'first_name':first_name,
+                               'last_name':last_name,
+                               'social_security_number':social_security_number,
+                               'gender':gender,
+                                'doctor': doctor}, Patient, PatientEndpoint)
+
+
+
     def _load_by_name(self, fname, lname, ssn4):
         patients = self._endpoint.list(first_name=fname, last_name=lname, ssn4=ssn4)
         if len(patients) == 1:

@@ -1,5 +1,6 @@
-from drchrono.endpoints import DoctorEndpoint, OfficeEndpoint
+from drchrono.endpoints import DoctorEndpoint, OfficeEndpoint, PatientEndpoint
 from drchrono.api_models.APIObj import APIObj
+from drchrono.api_models.Patient import Patient
 
 
 class Doctor(APIObj):
@@ -42,3 +43,20 @@ class Doctor(APIObj):
     @property
     def last_name (self):
         return Doctor.instance._data['last_name']
+
+    @property
+    def office (self):
+        return Doctor.instance._data['office']
+
+    def get_patients (self):
+        '''
+        Get all the patients who have this doctor
+        :return: list of Patient objects
+        '''
+        pat_endpoint = PatientEndpoint(APIObj.get_token())
+        pats = pat_endpoint.list(params={'doctor': self.id})
+        result = []
+        for p in pats:
+            x = Patient(data=p)
+            result.append(x)
+        return result

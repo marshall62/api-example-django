@@ -1,7 +1,5 @@
+from drchrono.api_models.Appointment import Appointment, APIObj
 from drchrono.endpoints import AppointmentEndpoint
-from drchrono.api_models.APIObj import APIObj
-from drchrono.api_models.Doctor import Doctor
-from drchrono.api_models.Appointment import Appointment
 from drchrono.api_models.Patient import Patient
 import drchrono.models
 import drchrono.api_models.PatientAppointment as api
@@ -9,25 +7,28 @@ import drchrono.dates as dateutil
 import datetime
 
 
-class Appointments(APIObj):
-    '''
-    Methods to fetch appointments from the API
-    '''
-    def __init__(self, doctor=None):
-        super().__init__(endpoint=AppointmentEndpoint)
-        self._doctor = doctor if doctor else Doctor()
+class Appointments():
+
+    _doctor = None
 
 
-    def get_appointments_for_date (self, date=datetime.date.today(), patient_id=None):
+    @classmethod
+    def set_doctor (cls, doctor):
+        cls._doctor = doctor
+
+
+    @classmethod
+    def get_appointments_for_date (cls, date=datetime.date.today(), patient_id=None):
         '''
         gets all the appointments for the date regardless of status
         :return: List[PatientAppointment] objects for today
         '''
         today_ymd = date.strftime('%Y-%m-%d')
-        params = {'doctor': self._doctor.id}
+        params = {'doctor': cls._doctor.id}
         if patient_id:
             params['patient'] = patient_id
-        today_appts = self._endpoint.list(params=params, verbose=True, date=today_ymd)
+        endpoint = AppointmentEndpoint(APIObj.get_token())
+        today_appts = endpoint.list(params=params, verbose=True, date=today_ymd)
         result = [] #type: List[api.PatientAppointment]
         count = 0
         for a in today_appts:
@@ -42,46 +43,44 @@ class Appointments(APIObj):
     def is_active (appt):
         return appt.status not in ['Complete', 'Cancelled']
 
-    def get_active_appointments_for_date (self, date=datetime.date.today(), patient_id=None):
+    @classmethod
+    def get_active_appointments_for_date (cls, date=datetime.date.today(), patient_id=None):
         '''
         gets all the appointments for the date leaving out canceled and complete ones.
         :return: List[PatientAppointment] objects for today sorted by scheduled time
         '''
         today_ymd = date.strftime('%Y-%m-%d')
-        params = {'doctor': self._doctor.id}
+        params = {'doctor': cls._doctor.id}
         if patient_id:
             params['patient'] = patient_id
-        today_appts = self._endpoint.list(params=params, verbose=True, date=today_ymd)
+        endpoint = AppointmentEndpoint(APIObj.get_token())
+        today_appts = endpoint.list(params=params, verbose=True, date=today_ymd)
         result = [] #type: List[api.PatientAppointment]
         count = 0
         for a in today_appts:
             appt = Appointment(data=a)
-            if self.is_active(appt):
+            if cls.is_active(appt):
                 pat = Patient(id=appt.patient_id)
                 pa = api.PatientAppointment(patient=pat, appointment=appt)
                 count += 1
                 result.append(pa)
         return sorted(result, key=lambda pa: pa.scheduled_time)
 
-    def get_appointments_for_patient (self, patient_id, date=datetime.date.today()):
-        return self.get_appointments_for_date(date=date, patient_id=patient_id)
+    @classmethod
+    def get_appointments_for_patient (cls, patient_id, date=datetime.date.today()):
+        return cls.get_appointments_for_date(date=date, patient_id=patient_id)
 
     @staticmethod
     def make_appointment_for_patient (patient, date=datetime.date.today(), duration=15, reason=''):
-        a = Appointment()
-        a.scheduled_time = dateutil.timestamp_api_format(date)
-        a.patient_id = patient.id
-        a.duration=duration
-        a.reason=reason
-        json = a.create() # save to API
-        new_a = Appointment(data=json)
-        pa = api.PatientAppointment(patient=patient, appointment=new_a)
+        appt = Appointment.create(patient.id,scheduled_time=dateutil.timestamp_api_format(date), duration=duration, reason=reason)
+        pa = api.PatientAppointment(patient=patient, appointment=appt)
         return pa
 
 
-
-    def load_all_appointments (self):
-        patient_appts = self.get_active_appointments_for_date()
+    #  Not using any local database stuff.  Can delete once I'm confident I don't want
+    @classmethod
+    def load_all_appointments (cls):
+        patient_appts = cls.get_active_appointments_for_date()
         for pa in drchrono.models.PatientAppointment.objects.all():
             pa.delete()
         for a in patient_appts:

@@ -26,6 +26,23 @@
     });
   }
 
+  function getScheduledAppointments () {
+    var url = "/appointments/" ;
+    $.ajax({
+      url: url,
+      type: "GET",
+      error: function (a, b, c) {
+        console.log("Failed to get from server! " + a.responseText + b);
+        console.log(a);
+      },
+      success: function (data) {
+        console.log("schedule appts", data);
+        reloadUpcomingTableAppointments(data['upcoming']);
+        reloadWaitingTableAppointments(data['waiting']);
+      }
+    });
+  }
+
   // WHen dr changes status of a patient, the row is removed from whatever table its in and inserted
   // into whatever table it should go to (e.g. a pt in the waiting room with new status of In Session moves
   // to the examTable).  The row can be used as-is in the new table except its final cell holding the
@@ -151,13 +168,33 @@
     })
   }
 
-  // Cycle through the exam table rows updating each duration
-  // Cycle through the waiting table rows updating each overtime
-  // happens on an interval of every 60 seconds.
   function updateTimes () {
     console.log("updating times");
     updateWaitingTableTimes();
     updateExamTableTimes();
+  }
+
+  function reloadWaitingTableAppointments (appointments) {
+    var $waitingTab = $('#waitingTableBody');
+    $waitingTab.empty();
+    for (var i=0;i<appointments.length;i++) {
+      var pa = appointments[i];
+      // get the wait time
+      var timeBehindSchedule = calcElapsedTime(pa.checkin_time);
+      var r = "<tr><td>" +pa.scheduled_time_12hr+ "</td> <td>" +toHM(timeBehindSchedule, true)+ "</td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +pa.status+ "</td> </tr>";
+      $waitingTab.append(r);
+    }
+  }
+
+  function reloadUpcomingTableAppointments(appointments) {
+    var $upcomingTab = $('#upcomingAppointmentsTbody');
+    $upcomingTab.empty();
+    for (var i=0;i<appointments.length;i++) {
+      var pa = appointments[i];
+      var r = "<tr><td>" +pa.scheduled_time_12hr+ "</td> <td></td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +pa.status+ "</td> </tr>";
+      $upcomingTab.append(r);
+    }
+
   }
 
   $( document ).ready(function () {
@@ -175,8 +212,8 @@
       }
     });
 
-    setInterval(updateTimes, 10*1000);
-
+    setInterval(updateTimes, 10*1000); // update patient durations and wait times every 10 secs
+    setInterval(getScheduledAppointments, 20*1000); // update the schedule every minute.
 
   });
 
@@ -186,98 +223,104 @@
 
 {% block body %}
 
-<h3>In Exam Rooms</h3>
-  <table class="table table-bordered">
-    <thead>
+<div class="row">
+  <div class="col-sm-10">
+    <h3>In Exam Rooms</h3>
+    <table class="table table-bordered">
+      <thead>
       <th class="col-sm-1">time</th>
       <th class="col-sm-1">duration</th>
       <th class="col-sm-2">First</th>
       <th class="col-sm-2">Last</th>
       <th class="col-sm-4">Reason</th>
-      <th class="col-sm-1">Status</th></thead>
-    <tbody id="examTableBody">
-    {% for a in appointments %}
+      <th class="col-sm-1">Status</th>
+      </thead>
+      <tbody id="examTableBody">
+      {% for a in appointments %}
       {% if a.status == 'In Session' %}
 
-        <tr data-appointment-id="{{ a.appointment_id }}" data-exam-starttime="{{ a.exam_starttime }}">
-          <td>{{a.scheduled_time_12hr}}</td>
-          <td class="duration" ></td>
-          <td>{{a.first_name}}</td>
-          <td>{{a.last_name}}</td>
-          <td>{{a.reason}}</td>
-          <td>
-            <div class="dropdown">
-              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">{{ a.status }}
-                <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li><a class="status" data-stat="complete" data-appointment-id="{{ a.appointment_id }}">Complete</a></li>
-                <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Checked In</a></li>
-              </ul>
-            </div>
-          </td>
-        </tr>
+      <tr data-appointment-id="{{ a.appointment_id }}" data-exam-starttime="{{ a.exam_starttime }}">
+        <td>{{a.scheduled_time_12hr}}</td>
+        <td class="duration"></td>
+        <td>{{a.first_name}}</td>
+        <td>{{a.last_name}}</td>
+        <td>{{a.reason}}</td>
+        <td>
+          <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">{{ a.status }}
+              <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+              <li><a class="status" data-stat="complete" data-appointment-id="{{ a.appointment_id }}">Complete</a></li>
+              <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Checked In</a></li>
+            </ul>
+          </div>
+        </td>
+      </tr>
       {% endif %}
-    {% endfor %}
-    </tbody>
-  </table>
+      {% endfor %}
+      </tbody>
+    </table>
 
-<h3>In Waiting Room</h3>
-  <table class="table table-bordered">
-    <thead>
+    <h3>In Waiting Room</h3>
+    <table class="table table-bordered">
+      <thead>
       <th class="col-sm-1">time</th>
       <th class="col-sm-1">Waiting time</th>
       <th class="col-sm-2">First</th>
       <th class="col-sm-2">Last</th>
       <th class="col-sm-5">Reason</th>
       <th class="col-sm-1">Status</th>
-    </thead>
-    <tbody id="waitingTableBody">
-    {% for a in appointments %}
+      </thead>
+      <tbody id="waitingTableBody">
+      {% for a in appointments %}
       {% if a.status == 'Checked In' or a.status == 'No Show'%}
-        <tr data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}" data-checkin-time="{{ a.checkin_time }}">
-          <td >{{a.scheduled_time_12hr}}</td>
-          <td class="time-waited"></td>
+      <tr data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}"
+          data-checkin-time="{{ a.checkin_time }}">
+        <td>{{a.scheduled_time_12hr}}</td>
+        <td class="time-waited"></td>
+        <td>{{a.first_name}}</td>
+        <td>{{a.last_name}}</td>
+        <td>{{a.reason}}</td>
+        <td>
+          <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">{{ a.status }}
+              <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+              <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">No Show</a></li>
+              <li><a class="status" data-stat="exam" data-appointment-id="{{ a.appointment_id }}">In Session</a></li>
+            </ul>
+          </div>
+        </td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h3>Later Appointments</h3>
+    <table class="table table-bordered">
+      <thead>
+      <th class="col-sm-1">time</th>
+      <th class="col-sm-1"></th>
+      <th class="col-sm-2">First</th>
+      <th class="col-sm-2">Last</th>
+      <th class="col-sm-5">Reason</th>
+      <th class="col-sm-1">Status</th>
+      </thead>
+      <tbody id="upcomingAppointmentsTbody">
+        {% for a in appointments %}
+        {% if a.status != 'Checked In' and a.status != 'In Session'%}
+        <tr>
+          <td>{{a.scheduled_time_12hr}}</td>
+          <td></td>
           <td>{{a.first_name}}</td>
           <td>{{a.last_name}}</td>
           <td>{{a.reason}}</td>
-          <td>
-            <div class="dropdown">
-              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">{{ a.status }}
-                <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">No Show</a></li>
-                <li><a class="status" data-stat="exam" data-appointment-id="{{ a.appointment_id }}">In Session</a></li>
-              </ul>
-            </div>
-          </td>
+          <td>{{ a.status }}</td>
         </tr>
-      {% endif %}
-    {% endfor %}
-    </tbody>
-  </table>
-
-<h3>Later Appointments</h3>
-    <table class="table table-bordered">
-      <thead>
-        <th class="col-sm-1">time</th>
-        <th class="col-sm-1"></th>
-        <th class="col-sm-2">First</th>
-        <th class="col-sm-2">Last</th>
-        <th class="col-sm-5">Reason</th>
-        <th class="col-sm-1">Status</th>
-      </thead>
-    {% for a in appointments %}
-      {% if a.status != 'Checked In' and a.status != 'In Session'%}
-            <tr>
-                <td>{{a.scheduled_time_12hr}}</td>
-                <td></td>
-                <td>{{a.first_name}}</td>
-                <td>{{a.last_name}}</td>
-                <td>{{a.reason}}</td>
-                <td>{{ a.status }}</td>
-            </tr>
-      {% endif %}
-    {% endfor %}
+        {% endif %}
+        {% endfor %}
+      </tbody>
     </table>
   </div>
   <div class="col-sm-2" style="background-color:yellow">

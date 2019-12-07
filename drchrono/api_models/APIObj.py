@@ -5,7 +5,7 @@ import os
 class APIObj:
 
     def __init__ (self, data={}, endpoint=None):
-        self._access_tok = self._get_token()
+        self._access_tok = self.get_token()
         self._endpoint = endpoint(self._access_tok)
         self._data = data
 
@@ -28,13 +28,19 @@ class APIObj:
         '''
         self._endpoint.update(id=self.id, data=self.data, partial=False)
 
-    def create (self):
-        '''
-        Write the object to the API and return the data
-        :return:
-        '''
-        json = self._endpoint.create(data=self.data)
-        return json
+    # def create (self):
+    #     '''
+    #     Write the object to the API and return the data
+    #     :return:
+    #     '''
+    #     json = self._endpoint.create(data=self.data)
+    #     self.data = json  # the json will the data + any values added by API (e.g. id)
+    #     return json
+
+    @classmethod
+    def _create (cls, data, api_obj, endpoint):
+        json = endpoint(cls.get_token()).create(data=data)
+        return api_obj(data=json)
 
     def _data_update_persist (self, property, value):
         '''
@@ -52,7 +58,8 @@ class APIObj:
         self._data = self._endpoint.fetch(id=id)
         return self._data
 
-    def _get_token(self):
+    @staticmethod
+    def get_token():
         """
         Social Auth module is configured to store our access tokens. This dark magic will fetch it for us if we've
         already signed in.
