@@ -1,4 +1,11 @@
 TODO:
+bugs:
+if patient goes from exam back to waiting , the wait time isn't set correctly
+
+duration is not set correctly when patient goes from waiting to session
+
+
+-------------------
 
 If patient checks in but then disappears, dr will mark as no-show.
 They should probably stay in the waiting room list but marked as no-show.  That way if dr later

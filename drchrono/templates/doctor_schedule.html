@@ -173,10 +173,21 @@
     })
   }
 
+  function updateUpcomingTableTimes () {
+    $('#upcomingAppointmentsTbody tr').each(function () {
+      var schedTime = $(this).data('scheduled-time');
+      elapsedTimeMin = calcElapsedTime(schedTime);
+      if (elapsedTimeMin > 0)
+        $(this).find('.late').html(toHM(elapsedTimeMin)); // set content of the duration td to minutes
+
+    })
+  }
+
   function updateTimes () {
     console.log("updating times");
     updateWaitingTableTimes();
     updateExamTableTimes();
+    updateUpcomingTableTimes();
   }
 
   function trTag (appt_id, scheduled_time, checkin_time) {
@@ -207,8 +218,14 @@
     $upcomingTab.empty();
     for (var i=0;i<appointments.length;i++) {
       var pa = appointments[i];
+      var patientLateTime = calcElapsedTime(pa.scheduled_time);
+      var late = '';
+      if (patientLateTime > 0)
+        late = toHM(patientLateTime);
+      var ddItems = {'absent': 'No Show'}
+      var dd = create_status_dropdown(pa.appointment_id, '', ddItems);
       var tr = trTag(pa.appointment_id, pa.scheduled_time);
-      tr += "<td>" +pa.scheduled_time_12hr+ "</td> <td></td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +pa.status+ "</td> </tr>";
+      tr += "<td>" +pa.scheduled_time_12hr+ "</td> <td>" +late+ "</td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +dd+ "</td> </tr>";
       $upcomingTab.append(tr);
     }
 
@@ -318,7 +335,7 @@
       </tbody>
     </table>
 
-    <h3>Later Appointments</h3>
+    <h3>Upcoming Appointments</h3>
     <table class="table table-bordered">
       <thead>
       <th class="col-sm-1">time</th>
@@ -331,13 +348,19 @@
       <tbody id="upcomingAppointmentsTbody">
         {% for a in appointments %}
         {% if a.status != 'Checked In' and a.status != 'In Session'%}
-        <tr>
+        <tr data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}">
           <td>{{a.scheduled_time_12hr}}</td>
-          <td></td>
+          <td class="late"></td>
           <td>{{a.first_name}}</td>
           <td>{{a.last_name}}</td>
           <td>{{a.reason}}</td>
-          <td>{{ a.status }}</td>
+          <td><div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">{{ a.status }}
+              <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+              <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">No Show</a></li>
+            </ul>
+          </div></td>
         </tr>
         {% endif %}
         {% endfor %}

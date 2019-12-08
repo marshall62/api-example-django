@@ -80,8 +80,10 @@ class PatientAppointment:
             return status
 
     def toJSON (self):
-        return {'first_name': self.first_name, 'last_name': self.last_name, 'scheduled_time_12hr': self.scheduled_time_12hr,
-                'reason': self.reason, 'status': self.status, 'checkin_time': self.checkin_time, 'appointment_id': self.appointment_id}
+        return {'first_name': self.first_name, 'last_name': self.last_name,
+                'scheduled_time_12hr': self.scheduled_time_12hr, 'scheduled_time': self.scheduled_time,
+                'reason': self.reason, 'status': self.status, 'checkin_time': self.checkin_time,
+                'appointment_id': self.appointment_id}
 
     def short_repr (self):
         return "<PA {} {} {} {}>".format(self.first_name, self.last_name, self.scheduled_time_12hr, self.status)
