@@ -17,10 +17,6 @@ def get_appointments (request):
             schedule['waiting'].append(pa.toJSON())
         else:
             schedule['upcoming'].append(pa.toJSON())
-
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint('-'*80)
-    pp.pprint(schedule)
     return JsonResponse(schedule)
 
 def update_appointment_status (request, appointment_id):

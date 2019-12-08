@@ -43,17 +43,10 @@
     });
   }
 
-  // WHen dr changes status of a patient, the row is removed from whatever table its in and inserted
-  // into whatever table it should go to (e.g. a pt in the waiting room with new status of In Session moves
-  // to the examTable).  The row can be used as-is in the new table except its final cell holding the
-  // dropdown menu needs to be replaced so it has appropriate menu selections for the new table.
-  function moveToTable ($rowElt, $tbody, menuItems, selectedOption) {
-    var appt_id = $rowElt.data('appointment-id');
-    var $ddTd = $rowElt.find('td').last();
-    $ddTd.empty(); // eliminate the dropdown menu out of the last cell in the row
-
-    // create new dropdown, set initially to selectedOption
-    var dd = '<div class="dropdown">' +
+  // dropdown menu for status built for an appointment depends on its current status.
+  // menuItems like: {'waiting': 'Checked In', 'absent': 'No Show'}
+  function create_status_dropdown (appt_id, selectedOption, menuItems) {
+   var dd = '<div class="dropdown">' +
         '              <button class="btn btn-primary dropdown-toggle" type="button" ' +
         '                      data-toggle="dropdown">' + selectedOption +
         '                <span class="caret"></span></button>' +
@@ -62,6 +55,18 @@
     for (var [stat, menuLabel] of Object.entries(menuItems))
       dd += '<li><a class="status" data-stat="' +stat+ '" data-appointment-id="' +appt_id+ '">' +menuLabel+ '</a></li>'
     dd += '</ul></div>';
+    return dd;
+  }
+
+  // WHen dr changes status of a patient, the row is removed from whatever table its in and inserted
+  // into whatever table it should go to (e.g. a pt in the waiting room with new status of In Session moves
+  // to the examTable).  The row can be used as-is in the new table except its final cell holding the
+  // dropdown menu needs to be replaced so it has appropriate menu selections for the new table.
+  function moveToTable ($rowElt, $tbody, menuItems, selectedOption) {
+    var appt_id = $rowElt.data('appointment-id');
+    var $ddTd = $rowElt.find('td').last();
+    $ddTd.empty(); // eliminate the dropdown menu out of the last cell in the row
+    var dd = create_status_dropdown(appt_id, selectedOption, menuItems);
     $ddTd.append(dd); // add the cell to the row
     $tbody.append($rowElt); // add the row to table
 
@@ -174,6 +179,14 @@
     updateExamTableTimes();
   }
 
+  function trTag (appt_id, scheduled_time, checkin_time) {
+    var r = "<tr data-appointment-id='" + appt_id + "' data-scheduled-time='" + scheduled_time + "'";
+    if (checkin_time)
+      r += " data-checkin-time='" + checkin_time + "'";
+    r += ">";
+    return r;
+  }
+
   function reloadWaitingTableAppointments (appointments) {
     var $waitingTab = $('#waitingTableBody');
     $waitingTab.empty();
@@ -181,8 +194,11 @@
       var pa = appointments[i];
       // get the wait time
       var timeBehindSchedule = calcElapsedTime(pa.checkin_time);
-      var r = "<tr><td>" +pa.scheduled_time_12hr+ "</td> <td>" +toHM(timeBehindSchedule, true)+ "</td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +pa.status+ "</td> </tr>";
-      $waitingTab.append(r);
+      var ddItems = {'exam': 'In Session', 'absent': 'No Show'}
+      var dd = create_status_dropdown(pa.appointment_id, 'Checked In', ddItems);
+      var tr = trTag(pa.appointment_id, pa.scheduled_time, pa.checkin_time);
+      tr += "<td>" +pa.scheduled_time_12hr+ "</td> <td>" +toHM(timeBehindSchedule, true)+ "</td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +dd+ "</td> </tr>";
+      $waitingTab.append(tr);
     }
   }
 
@@ -191,25 +207,30 @@
     $upcomingTab.empty();
     for (var i=0;i<appointments.length;i++) {
       var pa = appointments[i];
-      var r = "<tr><td>" +pa.scheduled_time_12hr+ "</td> <td></td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +pa.status+ "</td> </tr>";
-      $upcomingTab.append(r);
+      var tr = trTag(pa.appointment_id, pa.scheduled_time);
+      tr += "<td>" +pa.scheduled_time_12hr+ "</td> <td></td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +pa.status+ "</td> </tr>";
+      $upcomingTab.append(tr);
     }
 
+  }
+
+  function handleStatusClick ($menuItem) {
+      var stat = $menuItem.data('stat');
+      var proceed = true;
+      if (stat === 'complete')
+          proceed = confirm("Proceed with status change to " + $menuItem.text());
+      if (proceed) {
+        $menuItem.parents(".dropdown").find('.btn').html($menuItem.text() + ' <span class="caret"></span>');
+        $menuItem.parents(".dropdown").find('.btn').val($menuItem.data('stat'));
+        statusUpdate($menuItem, $menuItem.attr('data-appointment-id'), stat);
+      }
   }
 
   $( document ).ready(function () {
     // status dropdown items click handling
     $(document).on('click', '.status', function () {
-      var $e = $(this);
-      var stat = $e.data('stat');
-      var proceed = true;
-      if (stat === 'complete')
-          proceed = confirm("Proceed with status change to " + $e.text());
-      if (proceed) {
-        $e.parents(".dropdown").find('.btn').html($e.text() + ' <span class="caret"></span>');
-        $e.parents(".dropdown").find('.btn').val($e.data('stat'));
-        statusUpdate($e, $e.attr('data-appointment-id'), $e.data('stat'));
-      }
+      handleStatusClick($(this));
+
     });
 
     setInterval(updateTimes, 10*1000); // update patient durations and wait times every 10 secs

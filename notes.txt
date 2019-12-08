@@ -6,6 +6,8 @@ sees them in waiting room, they can be admitted.
 
 If dr marks patient 'no show' and then patient checks in, need to repopulate in sched
 
+Use constants in both back and front ends for statuses.
+
 endpoint mocking
 
 patient checkout will mark non-complete & checked-in appts as ''
@@ -13,7 +15,8 @@ patient checkout will mark non-complete & checked-in appts as ''
 overall-rating of satisfaction is done at checkout but shows on the doctors schedule in a table at the bottom
 for completed appts with ratings.  Also an average daily rating in stats box.
 
-
+complete appoints should be placed in some table of finished work so that we can show ratings on them
+each time one gets rated at checkout
 
 
 
