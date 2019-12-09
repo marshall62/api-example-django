@@ -22,12 +22,10 @@ urlpatterns = [
 
 # Stuff that needs to be done once at beginning
 from drchrono.api_models.Doctor import Doctor
-d = Doctor()
-Appointments.set_doctor(d)
 
-#TODO this runs while doing things like migrate.  Need to put a conditional in front of this so it only does it when running.
-
-# gets all the doctors appointments and builds our local db PatientAppointment table.
-# Appointments().load_all_appointments()
-
+try:
+    d = Doctor()
+    Appointments.set_doctor(d)
+except:
+    print("The app has an expired authentication token or it has not been created. Load http://localhost:8080/setup/")
 

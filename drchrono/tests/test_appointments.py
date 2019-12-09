@@ -31,6 +31,7 @@ class TestAppointments:
         print (len(pa_list))
         assert len(pa_list) > 0
 
+    @pytest.mark.skip
     def test_set_all_appts_status (self):
         '''
         Put some reasonable statuses on todays appointments.

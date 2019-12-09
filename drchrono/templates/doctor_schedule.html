@@ -70,24 +70,34 @@
     $tbody.append($rowElt); // add the row to table
   }
 
+  function timestampStr () {
+    var ts = new Date();
+    return `${ts.getFullYear()}-${ts.getMonth()+1}-${ts.getDate()}T${ts.getHours()}:${ts.getMinutes()}:${ts.getSeconds()}`
+
+  }
+
   function alterExamRowTime ($row) {
     // store the cur time as the exam starttime in the row data
-    $row.attr('data-exam-starttime', new Date().toISOString());
+    {#var ts = new Date().toISOString();#}
+    var ts = timestampStr();
+    $row.attr('data-exam-starttime', ts);
     // make the time-waited td be a duration td set to 0
-    var $td = $row.find('.time-waited');
-    $td.html('');
+    var $td = $row.find('td:nth-child(2)');
+    $waitTd.removeAttr('class');
     $td.attr('class', 'duration');
+    $td.html('');
   }
 
   function alterWaitingRowTime ($row) {
+    {#var ts = new Date().toISOString();#}
+    var ts = timestampStr();
     // store the cur time as the checkin time stored in row data
-    $row.attr('data-checkin-time', new Date().toISOString());
+    $row.attr('data-checkin-time', ts);
     // if the row has a .duration td get rid of it and replace with a time-waited
-    var $durtd = $row.find('.duration');
-    if ($durtd) {
-      $durtd.html('');
-      $durtd.attr('class', 'time-waited');
-    }
+    var $waitTd = $row.find('td:nth-child(2)');
+    $waitTd.removeAttr('class');
+    $td.attr('class', 'time-waited');
+    $waitTd.html('');
   }
 
   function statusUpdate (aElt, appointmentId, newStatus) {
@@ -246,8 +256,8 @@
 
     });
 
-<!--    setInterval(updateTimes, 10*1000); // update patient durations and wait times every 10 secs-->
-    setInterval(getScheduledAppointments, 10*1000); // update the schedule every minute.
+  setInterval(updateTimes, 10*1000); // update patient durations and wait times every 10 secs
+  setInterval(getScheduledAppointments, 1*60*1000); // update the schedule every minute.
 
   });
 

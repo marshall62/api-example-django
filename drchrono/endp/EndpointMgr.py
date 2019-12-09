@@ -4,7 +4,7 @@ from drchrono.endp import endpoints as api
 
 
 class EndpointMgr:
-    use_mock = os.environ['USE_MOCK_ENDPOINTS']
+    use_mock = os.environ.get('USE_MOCK_ENDPOINTS')
 
     @classmethod
     def patient (cls):

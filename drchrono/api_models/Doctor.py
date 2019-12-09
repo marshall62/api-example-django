@@ -22,7 +22,10 @@ class Doctor(APIObj):
 
         def _set_office (self):
             office_api = EndpointMgr.office()(APIObj.get_token())
-            office = next(office_api.list(params={'doctor': self.id}))  # there better only be one
+            for o in office_api.list():
+                if o['doctor'] == self._id:
+                    office = o
+                    break
             self._data['office'] = office['id']
 
         def _get_data(self):

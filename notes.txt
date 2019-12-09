@@ -25,7 +25,17 @@ for completed appts with ratings.  Also an average daily rating in stats box.
 complete appoints should be placed in some table of finished work so that we can show ratings on them
 each time one gets rated at checkout
 
-
+slack backup codes
+310950
+476962
+812653
+845417
+548876
+169665
+626219
+876467
+619000
+911300
 
 
 

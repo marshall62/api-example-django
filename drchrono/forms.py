@@ -22,7 +22,7 @@ class CheckoutSurveyForm(forms.Form):
     spent_time = forms.CharField(label="The doctor spent adequate time with me (disagree - agree)")
     issues_addressed = forms.CharField(label="The issues and questions I had were well addressed (disagree - agree)")
     support_efficient = forms.CharField(label="The support staff was friendly and efficient (disagree - agree)")
-    will_return = forms.CharField(label="Todays appointment met my needs and I will return to this doctor in the future(disagree - agree)")
+    will_return = forms.CharField(label="Overall rating of todays appointment")
 
 
 
@@ -34,13 +34,12 @@ class PatientInfoForm (forms.Form):
     gender = forms.CharField()
     address = forms.CharField(required=False)
     prefer_verbal = forms.BooleanField(label="I prefer to ask questions and raise issues with my doctor personally")
-    recent_changes = forms.CharField(widget=forms.Textarea,
+    recent_changes = forms.CharField(
                                      label='Describe any recent changes to your health',
                                      required=False)
-    other_med_info = forms.CharField(widget=forms.Textarea,
-                                     label='Is there info from other medical appointments or doctors that we might not have received that '
-                                           'is important for us in today\'s visit?',
+    other_med_info = forms.CharField(
+                                     label='Medical tests or info?',
                                      required=False)
-    patient_issues = forms.CharField(widget=forms.Textarea,
-                                     label='Do you have any questions or issues about your health that you really want addressed today?  If so, what are they?',
+    patient_issues = forms.CharField(
+                                     label='Questions or Issues you want addressed today?',
                                      required=False)

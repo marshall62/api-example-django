@@ -33,20 +33,24 @@ class MockEndpoint (BaseEndpoint):
                 return rec
         return None
 
-    def list (self, params={}, verbose=False, **kwargs):
+    def list (self, params=None, verbose=False, **kwargs):
+        if not params:
+            params = {}
         for prop, val in kwargs.items():
             params[prop]=val
-        res = []
         for rec in self.data_list:
             fail = False
             for prop,val in params.items():
                 v2 = rec.get(prop)
+                if type(v2) == str:
+                    v2 = v2.lower()
+                if type(val) == str:
+                    val = val.lower()
                 if v2 != val:
                     fail = True
                     break
             if not fail:
                 yield rec
-        return res
 
     def update(self, id, data, partial=True, **kwargs):
         found = None
@@ -57,6 +61,8 @@ class MockEndpoint (BaseEndpoint):
         if found:
             if partial:
                 for prop, val in kwargs.items():
+                    rec[prop] = val
+                for prop, val in data.items():
                     rec[prop] = val
             else:
                 self.data_list[i] = data
@@ -79,12 +85,24 @@ class Patient_MockEndpoint(MockEndpoint):
     def __init__(self, *args):
         super().__init__('patients.txt')
 
+    def list(self, params=None, first_name=None, last_name=None, ssn4=None, **kwargs):
+        params = params or {}
+        if first_name:
+            params['first_name'] = first_name
+        if last_name:
+            params['last_name'] = last_name
+        patients = super().list(params=params, **kwargs)
+        if ssn4:
+            return [p for p in patients if p['social_security_number'][-4:] == ssn4]
+        else:
+            return list(patients)
+
 class Appointment_MockEndpoint(MockEndpoint):
 
     def __init__(self, *args):
         super().__init__('appointments.txt')
 
-    def list(self, params={}, verbose=False, date=None):
+    def list(self, params=None, verbose=False, date=None):
         # override so this can ignore the date and just return all appointments (assuming we are always getting todays appts)
-        return super().list(params=params,verbose=verbose)
+        return list(super().list(params=params,verbose=verbose))
 

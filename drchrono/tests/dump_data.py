@@ -1,5 +1,4 @@
 from drchrono.api_models.Doctor import Doctor
-from drchrono.api_models.Appointment import Appointment
 from drchrono.sched.Appointments import Appointments
 import json
 

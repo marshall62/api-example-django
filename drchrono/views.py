@@ -20,6 +20,12 @@ class SetupView(TemplateView):
     template_name = 'kiosk_setup.html'
 
 
+
+def init_dr ():
+    doc = Doctor()
+    Appointments.set_doctor(doc)
+    return doc
+
 class DoctorSchedule(TemplateView):
     """
     The doctor can see what appointments they have today.
@@ -29,7 +35,7 @@ class DoctorSchedule(TemplateView):
 
     def get_context_data(self, **kwargs):
         kwargs = super(DoctorSchedule, self).get_context_data(**kwargs)
-        doc = Doctor()
+        doc = init_dr()
         today_appts = Appointments.get_active_appointments_for_date()
         kwargs['doctor'] = doc
         kwargs['appointments'] = today_appts
@@ -45,7 +51,7 @@ class Kiosk(View):
     template_name = 'kiosk.html'
 
     def get (self, request, *args, **kwargs):
-        doc = Doctor()
+        doc = init_dr()
         kwargs['doctor'] = doc
         return render(request, self.template_name)
 
@@ -68,6 +74,7 @@ class CheckinView(FormView):
 
     def post (self, request, *args, **kwargs):
         form = self.form_class(request.POST)
+        doc = init_dr()
         if form.is_valid():
             if request.POST.get('checkin'):
                 try:
@@ -122,6 +129,9 @@ class CheckinView(FormView):
         for appt in patient_appts:
             if Appointments.is_active(appt):
                 appt.status = 'Checked In'
+        patient_appts = Appointments.get_appointments_for_patient(patient_id=p.id)
+        for appt in patient_appts:
+            assert appt.status == 'Checked In', "Error: Failed to checkin"
         return p
 
 
@@ -134,6 +144,7 @@ class PatientInfoView (FormView):
     success_url = reverse_lazy('kiosk')
 
     def get(self, request, patient_id):
+        doc = init_dr()
         p = Patient(id=patient_id)
         f = self.form_class(p.data)
         return render(request, self.template_name, {'fname': p.first_name, 'form': f})
@@ -142,6 +153,7 @@ class PatientInfoView (FormView):
         # TODO would like to include question about Are there any recent health changes we should
         # know about today?  - Answer would be appended to the appt.reason  field
         form = self.form_class(request.POST)
+        doc = init_dr()
         if form.is_valid():
             recent_chg = form.cleaned_data['recent_changes']
             if recent_chg:
