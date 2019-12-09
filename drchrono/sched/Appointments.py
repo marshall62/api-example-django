@@ -1,5 +1,5 @@
 from drchrono.api_models.Appointment import Appointment, APIObj
-from drchrono.endpoints import AppointmentEndpoint
+from drchrono.endp.EndpointMgr import EndpointMgr
 from drchrono.api_models.Patient import Patient
 import drchrono.models
 import drchrono.api_models.PatientAppointment as api
@@ -27,7 +27,7 @@ class Appointments():
         params = {'doctor': cls._doctor.id}
         if patient_id:
             params['patient'] = patient_id
-        endpoint = AppointmentEndpoint(APIObj.get_token())
+        endpoint = EndpointMgr.appointment()(APIObj.get_token())
         today_appts = endpoint.list(params=params, verbose=True, date=today_ymd)
         result = [] #type: List[api.PatientAppointment]
         count = 0
@@ -53,7 +53,7 @@ class Appointments():
         params = {'doctor': cls._doctor.id}
         if patient_id:
             params['patient'] = patient_id
-        endpoint = AppointmentEndpoint(APIObj.get_token())
+        endpoint = EndpointMgr.appointment()(APIObj.get_token())
         today_appts = endpoint.list(params=params, verbose=True, date=today_ymd)
         result = [] #type: List[api.PatientAppointment]
         count = 0

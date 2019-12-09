@@ -1,4 +1,5 @@
-from drchrono.endpoints import PatientEndpoint
+from drchrono.endp.endpoints import PatientEndpoint
+from drchrono.endp.EndpointMgr import EndpointMgr
 from drchrono.api_models.APIObj import APIObj
 from drchrono.exc.exceptions import NonUniqueException, NotFoundException
 
@@ -9,15 +10,15 @@ class Patient(APIObj):
 
     def __init__(self, data={}, id=None, first_name=None, last_name=None, ssn4=None):
         if data:
-            super().__init__(data=data, endpoint=PatientEndpoint)
+            super().__init__(data=data, endpoint=EndpointMgr.patient())
         elif id != None:
-            super().__init__(endpoint=PatientEndpoint)
+            super().__init__(endpoint=EndpointMgr.patient())
             self.load_by_id(id)
         elif first_name and last_name:
-            super().__init__(endpoint=PatientEndpoint)
+            super().__init__(endpoint=EndpointMgr.patient())
             self._load_by_name(first_name, last_name, ssn4)
         else:
-            super().__init__(endpoint=PatientEndpoint)
+            super().__init__(endpoint=EndpointMgr.patient())
 
 
     @staticmethod

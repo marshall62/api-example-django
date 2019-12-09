@@ -1,12 +1,10 @@
 import pytest
 import datetime
 from itertools import cycle
-from .api_access import get_access_tok
 from drchrono.api_models.Doctor import Doctor
 from drchrono.api_models.Appointment import Appointment
 from drchrono.sched.Appointments import Appointments
 from drchrono.api_models.PatientAppointment import PatientAppointment
-from drchrono.endpoints import AppointmentEndpoint
 import drchrono.dates as dateutil
 import random
 
@@ -109,7 +107,7 @@ class TestAppointments:
                 found = True
         assert found, "Created appointment was not found when looking up patients appointments"
 
-    # @pytest.mark.skip
+    @pytest.mark.skip
     def test_create_N_appointments (self):
         '''
         Create N appointments at random times today for different patients

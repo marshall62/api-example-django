@@ -1,4 +1,4 @@
-from drchrono.endpoints import DoctorEndpoint, OfficeEndpoint, PatientEndpoint
+from drchrono.endp.EndpointMgr import EndpointMgr
 from drchrono.api_models.APIObj import APIObj
 from drchrono.api_models.Patient import Patient
 
@@ -15,14 +15,14 @@ class Doctor(APIObj):
 
     class __Doctor(APIObj):
         def __init__(self):
-            super().__init__(endpoint=DoctorEndpoint)
+            super().__init__(endpoint=EndpointMgr.doctor())
             self._data = self._get_data()
             self._id = self._data['id']
             self._set_office()
 
         def _set_office (self):
-            office_api = OfficeEndpoint(self._access_tok)
-            office = next(office_api.list(data={'doctor': self.id}))  # there better only be one
+            office_api = EndpointMgr.office()(APIObj.get_token())
+            office = next(office_api.list(params={'doctor': self.id}))  # there better only be one
             self._data['office'] = office['id']
 
         def _get_data(self):
@@ -53,7 +53,7 @@ class Doctor(APIObj):
         Get all the patients who have this doctor
         :return: list of Patient objects
         '''
-        pat_endpoint = PatientEndpoint(APIObj.get_token())
+        pat_endpoint = EndpointMgr.patient()(APIObj.get_token())
         pats = pat_endpoint.list(params={'doctor': self.id})
         result = []
         for p in pats:

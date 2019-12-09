@@ -35,12 +35,14 @@
         console.log("Failed to get from server! " + a.responseText + b);
         console.log(a);
       },
-      success: function (data) {
-        console.log("schedule appts", data);
-        reloadUpcomingTableAppointments(data['upcoming']);
-        reloadWaitingTableAppointments(data['waiting']);
-      }
+      success: function (data) { updateTables(data); }
     });
+  }
+
+  function updateTables (patient_appointments) {
+    reloadUpcomingTableAppointments(patient_appointments['upcoming']);
+    reloadWaitingTableAppointments(patient_appointments['waiting']);
+    updateExamTableTimes();
   }
 
   // dropdown menu for status built for an appointment depends on its current status.
@@ -58,10 +60,7 @@
     return dd;
   }
 
-  // WHen dr changes status of a patient, the row is removed from whatever table its in and inserted
-  // into whatever table it should go to (e.g. a pt in the waiting room with new status of In Session moves
-  // to the examTable).  The row can be used as-is in the new table except its final cell holding the
-  // dropdown menu needs to be replaced so it has appropriate menu selections for the new table.
+
   function moveToTable ($rowElt, $tbody, menuItems, selectedOption) {
     var appt_id = $rowElt.data('appointment-id');
     var $ddTd = $rowElt.find('td').last();
@@ -69,7 +68,6 @@
     var dd = create_status_dropdown(appt_id, selectedOption, menuItems);
     $ddTd.append(dd); // add the cell to the row
     $tbody.append($rowElt); // add the row to table
-
   }
 
   function alterExamRowTime ($row) {
@@ -101,8 +99,6 @@
       $row.remove();
     else if (newStatus === 'waiting') {
       $row.remove();
-      // TODO: Some ugliness here because I've allowed patients in exam to be sent back to waiting.
-      // It means the duration td needs to be changed back to a time-waited td with a 0
       alterWaitingRowTime($row);
       moveToTable($row, $('#waitingTableBody'), {'exam': 'In Session', 'absent': 'No Show'}, 'Checked In')
     }
@@ -250,8 +246,8 @@
 
     });
 
-    setInterval(updateTimes, 10*1000); // update patient durations and wait times every 10 secs
-    setInterval(getScheduledAppointments, 20*1000); // update the schedule every minute.
+<!--    setInterval(updateTimes, 10*1000); // update patient durations and wait times every 10 secs-->
+    setInterval(getScheduledAppointments, 10*1000); // update the schedule every minute.
 
   });
 

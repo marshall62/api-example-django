@@ -1,4 +1,4 @@
-from drchrono.endpoints import AppointmentEndpoint
+from drchrono.endp.EndpointMgr import EndpointMgr
 from drchrono.api_models.APIObj import APIObj
 from drchrono.api_models.Doctor import Doctor
 import datetime
@@ -10,13 +10,14 @@ class Appointment(APIObj):
     '''
 
     def __init__(self, id=None, doctor=None, duration=0, data={}):
+        appt_endpoint = EndpointMgr.appointment()
         if not doctor:
             doctor = Doctor()
         if id:
-            super().__init__(endpoint=AppointmentEndpoint)
+            super().__init__(endpoint=appt_endpoint)
             self.load_by_id(id)
         else:
-            super().__init__(data=data, endpoint=AppointmentEndpoint)
+            super().__init__(data=data, endpoint=appt_endpoint)
             self._data['doctor'] = doctor.id
             self._data['duration'] = duration
             self._data['exam_room'] = 1
@@ -28,7 +29,7 @@ class Appointment(APIObj):
             scheduled_time = dateutil.timestamp_api_format(datetime.date.today())
         doc = Doctor()
         data = {'patient': patient_id, 'scheduled_time': scheduled_time, 'duration': str(duration), 'reason': reason, 'exam_room': 1, 'office': doc.office, 'doctor': doc.id}
-        return APIObj._create(data,Appointment,AppointmentEndpoint)
+        return APIObj._create(data,Appointment,EndpointMgr.appointment())
 
     @property
     def patient_id (self):

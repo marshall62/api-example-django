@@ -1,5 +1,5 @@
 from drchrono.api_models.Doctor import Doctor
-from drchrono.endpoints import DoctorEndpoint
+from drchrono.endp.endpoints import DoctorEndpoint
 from .api_access import get_access_tok
 
 class TestDoctor:

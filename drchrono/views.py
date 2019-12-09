@@ -2,7 +2,6 @@ from django.views.generic import TemplateView, FormView, View
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from drchrono.api_models.Doctor import Doctor
-from drchrono.api_models.Appointment import Appointment
 from drchrono.sched.Appointments import Appointments
 from drchrono.api_models.Patient import Patient
 from drchrono.forms import CheckinForm, PatientInfoForm, CheckoutSurveyForm
