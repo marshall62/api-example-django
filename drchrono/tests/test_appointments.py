@@ -108,7 +108,7 @@ class TestAppointments:
                 found = True
         assert found, "Created appointment was not found when looking up patients appointments"
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_create_N_appointments (self):
         '''
         Create N appointments at random times today for different patients
@@ -123,6 +123,9 @@ class TestAppointments:
         for p in cycle(patients):
             # add 30 minutes to timestamp for each new appointment
             ts = ts + datetime.timedelta(minutes=30)
+            # dennis martin was created in API for test but I can't delete.  Don't want appts for him.
+            if p.first_name == 'dennis' and p.last_name=='martin':
+                continue
             a = Appointments.make_appointment_for_patient(patient=p,date=ts,duration=30,reason="for testing")
             appointments.append(a)
             count += 1

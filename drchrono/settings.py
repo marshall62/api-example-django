@@ -27,6 +27,20 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Additions to allow https connections from apache (other mods in wsgi.py)
+# taken from: https://www.pdxpixel.com/blog/2014/02/04/setting-up-django-site-ssl-apache-mod_wsgi-mod_ssl/
+# secure proxy SSL header and secure cookies
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+
+# session expire at browser close
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# wsgi scheme
+# os.environ['wsgi.url_scheme'] = 'https'
+#end additions
+
 
 # Application definition
 
@@ -121,6 +135,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # 5) Ask a dev if this doesn't work quickly; these settings can be fiddly, and we'd rather not wast time with them.
 SOCIAL_AUTH_DRCHRONO_KEY = os.getenv('SOCIAL_AUTH_CLIENT_ID')
 SOCIAL_AUTH_DRCHRONO_SECRET = os.getenv('SOCIAL_AUTH_SECRET')
+
+WEBHOOK_SECRET_TOKEN='dm-hackathon-webhook-201912'
 
 
 LOGIN_REDIRECT_URL = '/welcome/'

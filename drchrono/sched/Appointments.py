@@ -6,6 +6,10 @@ import drchrono.api_models.PatientAppointment as api
 import drchrono.dates as dateutil
 import datetime
 
+from drchrono.sched.ApptMgr import ApptMgr
+import drchrono.model2.Patient as m2Patient
+import drchrono.model2.Appointment as m2Appointment
+
 
 class Appointments():
 
@@ -65,6 +69,10 @@ class Appointments():
                 count += 1
                 result.append(pa)
         return sorted(result, key=lambda pa: pa.scheduled_time)
+
+
+
+
 
     @classmethod
     def get_appointments_for_patient (cls, patient_id, date=datetime.date.today()):

@@ -13,4 +13,8 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "drchrono.settings")
 
+# turn on https per instructions at https://www.pdxpixel.com/blog/2014/02/04/setting-up-django-site-ssl-apache-mod_wsgi-mod_ssl/
+# settings.py changed also
+# os.environ['HTTPS'] = "on"
+
 application = get_wsgi_application()

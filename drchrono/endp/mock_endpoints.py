@@ -68,22 +68,41 @@ class MockEndpoint (BaseEndpoint):
                 self.data_list[i] = data
         return data
 
+    def show_data (self):
+        for d in self.data_list:
+            print(d)
+
+
 
 class Office_MockEndpoint (MockEndpoint):
 
+    instance = None
+
     def __init__ (self, *args):
-        self.data_list = [{'id': '1', 'doctor': '254819'}]
+        if not self.instance:
+            self.data_list = [{'id': '1', 'doctor': '254819'}]
+            Office_MockEndpoint.instance = self
+
 
 class Doctor_MockEndpoint (MockEndpoint):
 
+    instance = None
+
     def __init__ (self, *args):
-        super().__init__('doctor.txt')
+        if not self.instance:
+            super().__init__('doctor.txt')
+            Doctor_MockEndpoint.instance = self
 
 
 class Patient_MockEndpoint(MockEndpoint):
 
+    instance=None
+
     def __init__(self, *args):
-        super().__init__('patients.txt')
+        if not self.instance:
+            super().__init__('patients.txt')
+            Patient_MockEndpoint.instance = self
+
 
     def list(self, params=None, first_name=None, last_name=None, ssn4=None, **kwargs):
         params = params or {}
@@ -99,8 +118,12 @@ class Patient_MockEndpoint(MockEndpoint):
 
 class Appointment_MockEndpoint(MockEndpoint):
 
+    instance=None
+
     def __init__(self, *args):
-        super().__init__('appointments.txt')
+        if not self.instance:
+            super().__init__('appointments.txt')
+            Appointment_MockEndpoint.instance = self
 
     def list(self, params=None, verbose=False, date=None):
         # override so this can ignore the date and just return all appointments (assuming we are always getting todays appts)

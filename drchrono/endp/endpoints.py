@@ -221,7 +221,7 @@ class AppointmentEndpoint(BaseEndpoint):
             raise Exception("Must provide either start & end, or date argument")
         if verbose:
             params['verbose'] = True
-        return super(AppointmentEndpoint, self).list(params, **kwargs)
+        return list(super(AppointmentEndpoint, self).list(params, **kwargs))
 
 class OfficeEndpoint(BaseEndpoint):
     endpoint = "offices"

@@ -6,6 +6,13 @@ from drchrono.endp import endpoints as api
 class EndpointMgr:
     use_mock = os.environ.get('USE_MOCK_ENDPOINTS')
 
+    def __init__ (self):
+        if self.use_mock:
+            self.doctor_ep = mock.Doctor_MockEndpoint()
+            self.appointment_ep = mock.Appointment_MockEndpoint()
+            self.patient_ep = mock.Patient_MockEndpoint()
+            self.office_ep = mock.Office_MockEndpoint()
+
     @classmethod
     def patient (cls):
         if cls.use_mock:

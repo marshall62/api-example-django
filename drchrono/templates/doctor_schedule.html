@@ -1,267 +1,13 @@
 {% extends 'navbar_page.html' %}
+{% load staticfiles %}
+
 
 {% block page-js %}
-  <script language="javascript">
-
-  var clock = Date.now();
-
-
-  function saveStat (appt_id, status) {
-    var data = new FormData();
-    data.set('status',status);
-    var url = "/appointments/" + appt_id;
-    $.ajax({
-      url: url,
-      type: "POST",
-      data: data,
-      processData: false,
-      contentType: false,
-      error: function (a, b, c) {
-        console.log("Failed to write to server! " + a.responseText + b);
-        console.log(a);
-      },
-      success: function (data) {
-        console.log("success", data);
-      }
-    });
-  }
-
-  function getScheduledAppointments () {
-    var url = "/appointments/" ;
-    $.ajax({
-      url: url,
-      type: "GET",
-      error: function (a, b, c) {
-        console.log("Failed to get from server! " + a.responseText + b);
-        console.log(a);
-      },
-      success: function (data) { updateTables(data); }
-    });
-  }
-
-  function updateTables (patient_appointments) {
-    reloadUpcomingTableAppointments(patient_appointments['upcoming']);
-    reloadWaitingTableAppointments(patient_appointments['waiting']);
-    updateExamTableTimes();
-  }
-
-  // dropdown menu for status built for an appointment depends on its current status.
-  // menuItems like: {'waiting': 'Checked In', 'absent': 'No Show'}
-  function create_status_dropdown (appt_id, selectedOption, menuItems) {
-   var dd = '<div class="dropdown">' +
-        '              <button class="btn btn-primary dropdown-toggle" type="button" ' +
-        '                      data-toggle="dropdown">' + selectedOption +
-        '                <span class="caret"></span></button>' +
-        '              <ul class="dropdown-menu">';
-    // add in the menu items to the dropdown
-    for (var [stat, menuLabel] of Object.entries(menuItems))
-      dd += '<li><a class="status" data-stat="' +stat+ '" data-appointment-id="' +appt_id+ '">' +menuLabel+ '</a></li>'
-    dd += '</ul></div>';
-    return dd;
-  }
-
-
-  function moveToTable ($rowElt, $tbody, menuItems, selectedOption) {
-    var appt_id = $rowElt.data('appointment-id');
-    var $ddTd = $rowElt.find('td').last();
-    $ddTd.empty(); // eliminate the dropdown menu out of the last cell in the row
-    var dd = create_status_dropdown(appt_id, selectedOption, menuItems);
-    $ddTd.append(dd); // add the cell to the row
-    $tbody.append($rowElt); // add the row to table
-  }
-
-  function timestampStr () {
-    var ts = new Date();
-    return `${ts.getFullYear()}-${ts.getMonth()+1}-${ts.getDate()}T${ts.getHours()}:${ts.getMinutes()}:${ts.getSeconds()}`
-
-  }
-
-  function alterExamRowTime ($row) {
-    // store the cur time as the exam starttime in the row data
-    {#var ts = new Date().toISOString();#}
-    var ts = timestampStr();
-    $row.attr('data-exam-starttime', ts);
-    // make the time-waited td be a duration td set to 0
-    var $td = $row.find('td:nth-child(2)');
-    $waitTd.removeAttr('class');
-    $td.attr('class', 'duration');
-    $td.html('');
-  }
-
-  function alterWaitingRowTime ($row) {
-    {#var ts = new Date().toISOString();#}
-    var ts = timestampStr();
-    // store the cur time as the checkin time stored in row data
-    $row.attr('data-checkin-time', ts);
-    // if the row has a .duration td get rid of it and replace with a time-waited
-    var $waitTd = $row.find('td:nth-child(2)');
-    $waitTd.removeAttr('class');
-    $td.attr('class', 'time-waited');
-    $waitTd.html('');
-  }
-
-  function statusUpdate (aElt, appointmentId, newStatus) {
-    saveStat(appointmentId, newStatus);
-
-    // if status is complete, remove the row
-    var $row = aElt.closest("tr");
-    if (newStatus === "complete")
-      $row.remove();
-    else if (newStatus === 'waiting') {
-      $row.remove();
-      alterWaitingRowTime($row);
-      moveToTable($row, $('#waitingTableBody'), {'exam': 'In Session', 'absent': 'No Show'}, 'Checked In')
-    }
-    else if (newStatus === 'exam') {
-      $row.remove();
-      alterExamRowTime($row); // change the time-waited td to a duration td
-      moveToTable($row, $('#examTableBody'), {'complete': 'Complete', 'waiting': 'Checked In'}, 'In Session')
-    }
-  }
-
-
-  function toHM (mins, addColor=false) {
-    var h = Math.floor(mins / 60);
-    var mins = mins % 60;
-    var res = "";
-    if (h >= 1)
-      res += h + ":";
-    if (mins >= 10)
-      res += mins.toString();
-    else if (h >= 1)
-      res += "0" + mins.toString();
-    else
-      res += mins.toString();
-    if (addColor) {
-      var color = 'red';
-      if (h < 1 && mins < 20 && mins > 15)
-        color = 'orange';
-      else if (h < 1 && mins < 15)
-        color = 'black';
-      return "<font color='" + color + "'>" + res + "</font>"
-
-    }
-    else
-      return res;
-
-  }
-
-  // return the elapsed time as HH:MM string
-  function calcElapsedTime (startTime) {
-    var ms = Date.now()- Date.parse(startTime);
-    // want as minutes
-    return Math.round(ms / (60 * 1000));
-  }
-
-  // The .time-waited td holds how long patient has been in waiting rm.  The timestamp of when status became Checked In is
-  // held in the tr's data-checkin-time.  We compute the time diff between now and checkin time and put this in the time-waited td.
-  function updateWaitingTableTimes () {
-    $('#waitingTableBody tr').each(function () {
-      var checkinTime = $(this).data('checkin-time');  // rows in waiting table have checkin-time in yyyy-mm-ddThh:mm:ss format
-      var scheduledTime = $(this).data('scheduled-time');  // rows in waiting table have scheduled-time in yyyy-mm-ddThh:mm:ss format
-      var timeSinceCheckin = calcElapsedTime(checkinTime); // TODO Maybe this shouldn't matter.  Ignore showing.
-      var timeBehindSchedule = calcElapsedTime(scheduledTime);
-      if (timeBehindSchedule > 0)
-        // show as time-behind-scheduled/time-since-checkin
-        $(this).find('.time-waited').html(toHM(timeBehindSchedule, true)); // set content of the time-waited td to minutes
-
-    })
-  }
-
-  // The .duration td holds how long patient has been in exam rm.  The timestamp of when status became Checked In is
-  // held in the tr's data-checkin-time.  We compute the time diff between now and checkin time and put this in the time-waited td.
-  function updateExamTableTimes () {
-    $('#examTableBody tr').each(function () {
-      var starttime = $(this).data('exam-starttime');  // rows in exam table have start times in yyyy-mm-ddThh:mm:ss format
-      elapsedTimeMin = calcElapsedTime(starttime);
-      $(this).find('.duration').html(toHM(elapsedTimeMin)); // set content of the duration td to minutes
-
-    })
-  }
-
-  function updateUpcomingTableTimes () {
-    $('#upcomingAppointmentsTbody tr').each(function () {
-      var schedTime = $(this).data('scheduled-time');
-      elapsedTimeMin = calcElapsedTime(schedTime);
-      if (elapsedTimeMin > 0)
-        $(this).find('.late').html(toHM(elapsedTimeMin)); // set content of the duration td to minutes
-
-    })
-  }
-
-  function updateTimes () {
-    console.log("updating times");
-    updateWaitingTableTimes();
-    updateExamTableTimes();
-    updateUpcomingTableTimes();
-  }
-
-  function trTag (appt_id, scheduled_time, checkin_time) {
-    var r = "<tr data-appointment-id='" + appt_id + "' data-scheduled-time='" + scheduled_time + "'";
-    if (checkin_time)
-      r += " data-checkin-time='" + checkin_time + "'";
-    r += ">";
-    return r;
-  }
-
-  function reloadWaitingTableAppointments (appointments) {
-    var $waitingTab = $('#waitingTableBody');
-    $waitingTab.empty();
-    for (var i=0;i<appointments.length;i++) {
-      var pa = appointments[i];
-      // get the wait time
-      var timeBehindSchedule = calcElapsedTime(pa.checkin_time);
-      var ddItems = {'exam': 'In Session', 'absent': 'No Show'}
-      var dd = create_status_dropdown(pa.appointment_id, 'Checked In', ddItems);
-      var tr = trTag(pa.appointment_id, pa.scheduled_time, pa.checkin_time);
-      tr += "<td>" +pa.scheduled_time_12hr+ "</td> <td>" +toHM(timeBehindSchedule, true)+ "</td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +dd+ "</td> </tr>";
-      $waitingTab.append(tr);
-    }
-  }
-
-  function reloadUpcomingTableAppointments(appointments) {
-    var $upcomingTab = $('#upcomingAppointmentsTbody');
-    $upcomingTab.empty();
-    for (var i=0;i<appointments.length;i++) {
-      var pa = appointments[i];
-      var patientLateTime = calcElapsedTime(pa.scheduled_time);
-      var late = '';
-      if (patientLateTime > 0)
-        late = toHM(patientLateTime);
-      var ddItems = {'absent': 'No Show'}
-      var dd = create_status_dropdown(pa.appointment_id, '', ddItems);
-      var tr = trTag(pa.appointment_id, pa.scheduled_time);
-      tr += "<td>" +pa.scheduled_time_12hr+ "</td> <td>" +late+ "</td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +dd+ "</td> </tr>";
-      $upcomingTab.append(tr);
-    }
-
-  }
-
-  function handleStatusClick ($menuItem) {
-      var stat = $menuItem.data('stat');
-      var proceed = true;
-      if (stat === 'complete')
-          proceed = confirm("Proceed with status change to " + $menuItem.text());
-      if (proceed) {
-        $menuItem.parents(".dropdown").find('.btn').html($menuItem.text() + ' <span class="caret"></span>');
-        $menuItem.parents(".dropdown").find('.btn').val($menuItem.data('stat'));
-        statusUpdate($menuItem, $menuItem.attr('data-appointment-id'), stat);
-      }
-  }
-
-  $( document ).ready(function () {
-    // status dropdown items click handling
-    $(document).on('click', '.status', function () {
-      handleStatusClick($(this));
-
-    });
-
-  setInterval(updateTimes, 10*1000); // update patient durations and wait times every 10 secs
-  setInterval(getScheduledAppointments, 1*60*1000); // update the schedule every minute.
-
-  });
-
-  </script>
+  <script src="{% static 'js/utils.js' %}" type="text/javascript"></script>
+  <script src="{% static 'js/pollupd.js' %}" type="text/javascript"></script>
+  <script src="{% static 'js/timeupd.js' %}" type="text/javascript"></script>
+  <script src="{% static 'js/statusChg.js' %}" type="text/javascript"></script>
+  <script src="{% static 'js/drsched.js' %}" type="text/javascript"></script>
 {% endblock %}
 
 
@@ -283,7 +29,7 @@
       {% for a in appointments %}
       {% if a.status == 'In Session' %}
 
-      <tr data-appointment-id="{{ a.appointment_id }}" data-exam-starttime="{{ a.exam_starttime }}">
+      <tr  data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}" data-exam-starttime="{{ a.exam_starttime }}">
         <td>{{a.scheduled_time_12hr}}</td>
         <td class="duration"></td>
         <td>{{a.first_name}}</td>
@@ -317,7 +63,7 @@
       </thead>
       <tbody id="waitingTableBody">
       {% for a in appointments %}
-      {% if a.status == 'Checked In' or a.status == 'No Show'%}
+      {% if a.status == 'Checked In'%}
       <tr data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}"
           data-checkin-time="{{ a.checkin_time }}">
         <td>{{a.scheduled_time_12hr}}</td>
@@ -345,7 +91,7 @@
     <table class="table table-bordered">
       <thead>
       <th class="col-sm-1">time</th>
-      <th class="col-sm-1"></th>
+      <th class="col-sm-1">Late</th>
       <th class="col-sm-2">First</th>
       <th class="col-sm-2">Last</th>
       <th class="col-sm-5">Reason</th>
@@ -353,7 +99,7 @@
       </thead>
       <tbody id="upcomingAppointmentsTbody">
         {% for a in appointments %}
-        {% if a.status != 'Checked In' and a.status != 'In Session'%}
+        {% if a.status != 'Checked In' and a.status != 'In Session' and a.status != 'Complete' %}
         <tr data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}">
           <td>{{a.scheduled_time_12hr}}</td>
           <td class="late"></td>
@@ -365,11 +111,38 @@
               <span class="caret"></span></button>
             <ul class="dropdown-menu">
               <li><a class="status" data-stat="absent" data-appointment-id="{{ a.appointment_id }}">No Show</a></li>
+              <li><a class="status" data-stat="waiting" data-appointment-id="{{ a.appointment_id }}">Checked In</a></li>
             </ul>
           </div></td>
         </tr>
         {% endif %}
         {% endfor %}
+      </tbody>
+    </table>
+
+
+    <h3>Todays Completed Appointments</h3>
+    <table class="table table-bordered">
+      <thead>
+      <th class="col-sm-1">Completion time</th>
+      <th class="col-sm-1">actual duration</th>
+      <th class="col-sm-2">First</th>
+      <th class="col-sm-2">Last</th>
+      <th class="col-sm-5">Rating</th>
+      </thead>
+      <tbody id="completeTableTbody">
+      {% for a in appointments %}
+        {% if a.status == 'Complete'%}
+          <tr data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}">
+            <td>TODO</td>
+            <td>TODO</td>
+            <td>{{a.first_name}}</td>
+            <td>{{a.last_name}}</td>
+            <td>TODO</td>
+
+          </tr>
+        {% endif %}
+      {% endfor %}
       </tbody>
     </table>
   </div>

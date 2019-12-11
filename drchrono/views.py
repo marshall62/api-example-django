@@ -1,17 +1,14 @@
 from django.views.generic import TemplateView, FormView, View
+from drchrono.exc.exceptions import NonUniqueException, NotFoundException
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from drchrono.api_models.Doctor import Doctor
-from drchrono.sched.Appointments import Appointments
-from drchrono.api_models.Patient import Patient
+from drchrono.model2.Appointment import Appointment
+from drchrono.sched.APIGateway import APIGateway
 from drchrono.forms import CheckinForm, PatientInfoForm, CheckoutSurveyForm
 import django.forms.forms
 from django.forms.utils import ErrorList
-
-
-
-
-
+from drchrono.sched.ModelObjects import ModelObjects
+import traceback
 
 class SetupView(TemplateView):
     """
@@ -21,10 +18,10 @@ class SetupView(TemplateView):
 
 
 
-def init_dr ():
-    doc = Doctor()
-    Appointments.set_doctor(doc)
-    return doc
+# def init_dr ():
+#     doc = Doctor()
+#     Appointments.set_doctor(doc)
+#     return doc
 
 class DoctorSchedule(TemplateView):
     """
@@ -32,11 +29,11 @@ class DoctorSchedule(TemplateView):
     """
     template_name = 'doctor_schedule.html'
 
-
     def get_context_data(self, **kwargs):
         kwargs = super(DoctorSchedule, self).get_context_data(**kwargs)
-        doc = init_dr()
-        today_appts = Appointments.get_active_appointments_for_date()
+        m = ModelObjects()
+        doc = m.doctor
+        today_appts = doc.get_patient_appointments()
         kwargs['doctor'] = doc
         kwargs['appointments'] = today_appts
         return kwargs
@@ -51,15 +48,11 @@ class Kiosk(View):
     template_name = 'kiosk.html'
 
     def get (self, request, *args, **kwargs):
-        doc = init_dr()
+        m = ModelObjects()
+        doc = m.doctor
         kwargs['doctor'] = doc
         return render(request, self.template_name)
 
-    # def get_context_data(self, **kwargs):
-    #     kwargs = super(Kiosk, self).get_context_data(**kwargs)
-    #     doc = Doctor()
-    #     kwargs['doctor'] = doc.obj
-    #     return kwargs
 
 class CheckinView(FormView):
     form_class = CheckinForm
@@ -70,11 +63,12 @@ class CheckinView(FormView):
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
+        m = ModelObjects()
         return render(request,self.template_name, {'form': form})
 
     def post (self, request, *args, **kwargs):
         form = self.form_class(request.POST)
-        doc = init_dr()
+        m = ModelObjects()
         if form.is_valid():
             if request.POST.get('checkin'):
                 try:
@@ -83,7 +77,7 @@ class CheckinView(FormView):
                         return redirect(self.checkin_success_url,
                                         patient_id=pat.id)
                 except Exception as e:
-                    print(e)
+                    traceback.print_exc()
                     form.errors[django.forms.forms.NON_FIELD_ERRORS] = ErrorList([e.__str__()])
             else:
                 pat = self.get_patient(form)
@@ -99,8 +93,18 @@ class CheckinView(FormView):
         fname = valid_data['first_name']
         lname = valid_data['last_name']
         ssn4 = valid_data['ssn4']
-        p = Patient(first_name=fname, last_name=lname, ssn4=ssn4)
-        return p
+        m = ModelObjects()
+        pats = m.get_patients_from_name(fname,lname,ssn4)
+        if len(pats) > 1:
+            for p in pats:
+                print(p.ssn4)
+            raise NonUniqueException("Could not find a single patient with that name.  Please use SSN")
+        if len(pats) == 1:
+            return pats[0]
+        else:
+            raise NotFoundException("Could not find patient with that name.  Please use SSN")
+
+
 
     def checkin_patient (self, form):
         '''
@@ -122,16 +126,14 @@ class CheckinView(FormView):
         :return:
         '''
         p = self.get_patient(form)
-
+        m = ModelObjects()
+        doc = m.doctor
         # TODO SHould we verify that this patient has an appointment today and that they have arrived in neighborhood of scheduled time?
         # get all active appointments for this patient today and set status to Checked In
-        patient_appts = Appointments.get_appointments_for_patient(patient_id=p.id)
-        for appt in patient_appts:
-            if Appointments.is_active(appt):
-                appt.status = 'Checked In'
-        patient_appts = Appointments.get_appointments_for_patient(patient_id=p.id)
-        for appt in patient_appts:
-            assert appt.status == 'Checked In', "Error: Failed to checkin"
+        patient_appts = doc.get_patient_appointments(patient_id=p.id)
+        for pa in patient_appts:
+            if pa.is_active():
+                m.set_appointment_status(pa.appointment_id,Appointment.STATUS_WAITING,persist=True) #save status locally and in API
         return p
 
 
@@ -144,16 +146,16 @@ class PatientInfoView (FormView):
     success_url = reverse_lazy('kiosk')
 
     def get(self, request, patient_id):
-        doc = init_dr()
-        p = Patient(id=patient_id)
+        m = ModelObjects()
+        p = m.patients_map[int(patient_id)] #type: Patient
         f = self.form_class(p.data)
         return render(request, self.template_name, {'fname': p.first_name, 'form': f})
 
     def post(self, request, patient_id):
         # TODO would like to include question about Are there any recent health changes we should
         # know about today?  - Answer would be appended to the appt.reason  field
+        m = ModelObjects()
         form = self.form_class(request.POST)
-        doc = init_dr()
         if form.is_valid():
             recent_chg = form.cleaned_data['recent_changes']
             if recent_chg:

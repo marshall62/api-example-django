@@ -1,4 +1,5 @@
 from drchrono import dates
+from drchrono.model2.Appointment import Appointment
 class PatientAppointment:
 
     def __init__ (self, patient, appointment):
@@ -66,6 +67,9 @@ class PatientAppointment:
     def status (self, status):
         self._appointment.status = status # will persist new status to API
 
+    def is_active (self):
+        return self.status != Appointment.STATUS_COMPLETE and self.status != Appointment.STATUS_CANCELLED
+
     def simplify_status (self, status):
         '''
         This office only cares about statuses:  Checked In, In Session, Complete, No Show.
@@ -89,5 +93,5 @@ class PatientAppointment:
         return "<PA {} {} {} {}>".format(self.first_name, self.last_name, self.scheduled_time_12hr, self.status)
 
     def __repr__ (self):
-        return "<PatientAppointment {} {}>".format(self.patient.__repr__(), self.appointment.__repr__())
+        return "<PatientAppointment {} {} {} {}>".format(self.first_name,self.last_name,self.scheduled_time, self.status)
 

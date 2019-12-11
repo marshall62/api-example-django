@@ -1,9 +1,11 @@
+from drchrono.endp.EndpointMgr import EndpointMgr
 from drchrono.endp.mock_endpoints import *
 import pytest
 
 class TestMockEndpoints:
 
     def setup_class (cls):
+        EndpointMgr()
         cls.dep = Doctor_MockEndpoint()
         cls.doc2 = cls.dep.create({'first_name': 'Gomer', 'last_name': 'Pyle'})
         cls.doc3 = cls.dep.create({'first_name': 'David', 'last_name': 'Pyle'})
