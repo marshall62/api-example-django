@@ -1,10 +1,4 @@
-from drchrono.endp.EndpointMgr import EndpointMgr
-from drchrono.api_models.APIObj import APIObj
-from drchrono.api_models.Doctor import Doctor
-import datetime
-import drchrono.dates as dateutil
-
-class Appointment(APIObj):
+class Appointment:
 
     STATUS_COMPLETE = 'Complete'
     STATUS_WAITING = 'Checked In'

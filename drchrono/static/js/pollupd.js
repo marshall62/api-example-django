@@ -16,11 +16,26 @@ function getScheduledAppointments () {
 
 
 /* update all the tables with appointment data received. */
-function updateTables (patient_appointments) {
-  reloadUpcomingTableAppointments(patient_appointments['upcoming']);
-  reloadWaitingTableAppointments(patient_appointments['waiting']);
-  reloadCompletedTableAppointments(patient_appointments['complete']);
+function updateTables (data) {
+  reloadUpcomingTableAppointments(data['upcoming']);
+  reloadWaitingTableAppointments(data['waiting']);
+  reloadCompletedTableAppointments(data['complete']);
+  var avg_wait = data['stats']['avg_wait'];
+  var max_wait = data['stats']['max_wait'];
+  var avg_duration = data['stats']['avg_duration'];
+  addStatsToCompletedTable(avg_wait, max_wait, avg_duration);
   updateExamTableTimes();
+}
+
+function addStatsToCompletedTable (avgWait, maxWait, avgDur) {
+  var tr = "<tr><td>Average Wait time:</td><td>"+avgWait+"</td>";
+  $('#completeTableTbody').append(tr);
+
+  tr = "<tr><td>Max Wait time:</td><td>"+maxWait+"</td>";
+  $('#completeTableTbody').append(tr);
+
+  tr = "<tr><td>Average Duration:</td><td>"+avgDur+"</td>";
+  $('#completeTableTbody').append(tr);
 }
 
 
@@ -30,9 +45,20 @@ function reloadCompletedTableAppointments (appointments) {
   for (var i=0;i<appointments.length;i++) {
     var pa = appointments[i];
     var tr = trTag(pa.appointment_id, pa.scheduled_time, pa.checkin_time);
-    tr += "<td>" + "TODO" + "</td> <td>" + "TODO" + "</td> <td>" + pa.first_name + "</td> <td>" + pa.last_name + "</td> <td>" + "5 stars" + "</td></tr>";
+    tr += "<td>" + pa.completion_time + "</td> <td>" + pa.actual_duration + "</td> <td>" + pa.first_name + "</td> <td>" + pa.last_name + "</td> <td>" + "5 stars" + "</td></tr>";
     $tab.append(tr);
   }
+}
+
+function waitTimeContent (checkinTime, scheduledTime) {
+  var timeSinceCheckin = calcElapsedTime(checkinTime); // TODO Maybe this shouldn't matter.  Ignore showing.
+  var timeBehindSchedule = calcElapsedTime(scheduledTime);
+  var content = '';
+  if (timeBehindSchedule > 0)
+    content = waitTimeWithTooltip(toHM(timeBehindSchedule, true), toHM(timeSinceCheckin));
+  else
+    content = waitTimeWithTooltip(toHM(0), toHM(timeSinceCheckin));
+  return content;
 }
 
 function reloadWaitingTableAppointments (appointments) {
@@ -41,14 +67,15 @@ function reloadWaitingTableAppointments (appointments) {
   for (var i=0;i<appointments.length;i++) {
     var pa = appointments[i];
     // get the wait time
-    var timeBehindSchedule = calcElapsedTime(pa.scheduled_time);
-    var waitTime = '';
-    if (timeBehindSchedule > 0)
-      waitTime = toHM(timeBehindSchedule, true)
+    // var timeBehindSchedule = calcElapsedTime(pa.scheduled_time);
+    // var waitTime = '';
+    // if (timeBehindSchedule > 0)
+    //   waitTime = toHM(timeBehindSchedule, true)
+    var wt = waitTimeContent(pa.checkin_time, pa.scheduled_time);
     var ddItems = {'exam': 'In Session', 'absent': 'No Show'}
     var dd = create_status_dropdown(pa.appointment_id, 'Checked In', ddItems);
     var tr = trTag(pa.appointment_id, pa.scheduled_time, pa.checkin_time);
-    tr += "<td>" +pa.scheduled_time_12hr+ "</td> <td>" +waitTime+ "</td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +dd+ "</td> </tr>";
+    tr += "<td>" +pa.scheduled_time_12hr+ "</td> <td class='time-waited'>" +wt+ "</td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +dd+ "</td> </tr>";
     $waitingTab.append(tr);
   }
 }

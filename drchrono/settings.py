@@ -30,15 +30,15 @@ ALLOWED_HOSTS = []
 # Additions to allow https connections from apache (other mods in wsgi.py)
 # taken from: https://www.pdxpixel.com/blog/2014/02/04/setting-up-django-site-ssl-apache-mod_wsgi-mod_ssl/
 # secure proxy SSL header and secure cookies
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # session expire at browser close
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # wsgi scheme
-# os.environ['wsgi.url_scheme'] = 'https'
+os.environ['wsgi.url_scheme'] = 'https'
 #end additions
 
 

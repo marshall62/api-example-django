@@ -16,10 +16,35 @@ def timestamp_api_format (dt):
     '''Convert a date to a timestamp in the format the API wants it yyyy-mm-ddThh:mm:ss'''
     return dt.strftime("%Y-%m-%dT%H:%M:%S")
 
+def time_diff (d1_str, d2_str):
+    '''
+    Times given in yyyy-mm-ddTHH:MM:SS
+    :param d1_str:
+    :param d2_str:
+    :return: (minutes, seconds)
+    '''
+    d = apidt_to_ts(d1_str) - apidt_to_ts(d2_str)
+    datetime.timedelta(0, 8, 562000)
+    return divmod(d.days * 86400 + d.seconds, 60)
+
+def min2minSec (min):
+    return minSec(min // 60, min % 60)
+
+def minSec (min, sec):
+    s = ""
+    if min > 0:
+        s = "{}:".format(min)
+    if sec >= 0 and sec < 10:
+        s += "0"+str(sec)
+    else: s += str(sec)
+    return s
+
+
 
 def apidt_to_ts (dt_str):
     ymd, t = dt_str.split('T')
     y,m,d = ymd.split('-')
     h,min,s = t.split(':')
     dt = datetime.datetime(int(y), int(m), int(d),int(h),int(min),int(s))
+
     return dt

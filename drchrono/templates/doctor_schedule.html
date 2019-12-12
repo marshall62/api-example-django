@@ -4,8 +4,8 @@
 
 {% block page-js %}
   <script src="{% static 'js/utils.js' %}" type="text/javascript"></script>
-  <script src="{% static 'js/pollupd.js' %}" type="text/javascript"></script>
   <script src="{% static 'js/timeupd.js' %}" type="text/javascript"></script>
+  <script src="{% static 'js/pollupd.js' %}" type="text/javascript"></script>
   <script src="{% static 'js/statusChg.js' %}" type="text/javascript"></script>
   <script src="{% static 'js/drsched.js' %}" type="text/javascript"></script>
 {% endblock %}
@@ -13,12 +13,11 @@
 
 {% block body %}
 
-<div class="row">
-  <div class="col-sm-10">
+
     <h3>In Exam Rooms</h3>
     <table class="table table-bordered">
       <thead>
-      <th class="col-sm-1">time</th>
+      <th class="col-sm-2">time</th>
       <th class="col-sm-1">duration</th>
       <th class="col-sm-2">First</th>
       <th class="col-sm-2">Last</th>
@@ -54,11 +53,11 @@
     <h3>In Waiting Room</h3>
     <table class="table table-bordered">
       <thead>
-      <th class="col-sm-1">time</th>
-      <th class="col-sm-1">Waiting time</th>
+      <th class="col-sm-2">time</th>
+      <th class="col-sm-1">Overdue time</th>
       <th class="col-sm-2">First</th>
       <th class="col-sm-2">Last</th>
-      <th class="col-sm-5">Reason</th>
+      <th class="col-sm-4">Reason</th>
       <th class="col-sm-1">Status</th>
       </thead>
       <tbody id="waitingTableBody">
@@ -90,11 +89,11 @@
     <h3>Upcoming Appointments</h3>
     <table class="table table-bordered">
       <thead>
-      <th class="col-sm-1">time</th>
+      <th class="col-sm-2">time</th>
       <th class="col-sm-1">Late</th>
       <th class="col-sm-2">First</th>
       <th class="col-sm-2">Last</th>
-      <th class="col-sm-5">Reason</th>
+      <th class="col-sm-4">Reason</th>
       <th class="col-sm-1">Status</th>
       </thead>
       <tbody id="upcomingAppointmentsTbody">
@@ -121,7 +120,7 @@
     </table>
 
 
-    <h3>Todays Completed Appointments</h3>
+    <h3>Today's Completed Appointments</h3>
     <table class="table table-bordered">
       <thead>
       <th class="col-sm-1">Completion time</th>
@@ -134,8 +133,8 @@
       {% for a in appointments %}
         {% if a.status == 'Complete'%}
           <tr data-appointment-id="{{ a.appointment_id }}" data-scheduled-time="{{ a.scheduled_time }}">
-            <td>TODO</td>
-            <td>TODO</td>
+            <td>{{ a.completion_time }}</td>
+            <td>{{ a.actual_duration }}</td>
             <td>{{a.first_name}}</td>
             <td>{{a.last_name}}</td>
             <td>TODO</td>
@@ -146,9 +145,6 @@
       </tbody>
     </table>
   </div>
-  <div class="col-sm-2" style="background-color:yellow">
-    statistics will go here
-  </div>
-</div>
+
 <!--{{ doctor }}-->
 {% endblock %}

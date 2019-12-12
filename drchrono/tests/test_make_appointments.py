@@ -25,6 +25,15 @@ def test_make_1_appt ():
     print(apt)
     assert apt.patient_id == p1.id
 
+def test_make_1_appt_before_now ():
+    m = ModelObjects()
+    p1 = m.patients[8]
+    ts = datetime.datetime.now() - datetime.timedelta(minutes=200)
+    apt = make_appointment_for_patient(p1,ts)
+    print(apt)
+    assert apt.patient_id == p1.id
+
+@pytest.mark.skip
 def test_make_1_random_appt ():
     m = ModelObjects()
     p1 = random.choice(m.patients)
@@ -54,7 +63,7 @@ def test_create_N_appointments ():
         if p.first_name == 'dennis' and p.last_name=='martin':
             continue
             #patient.id,scheduled_time=dateutil.timestamp_api_format(date), duration=duration, reason=reason)
-        make_appointment_for_patient(p,ts)
+        appointments.append(make_appointment_for_patient(p,ts))
         count += 1
         if count == N:
             break

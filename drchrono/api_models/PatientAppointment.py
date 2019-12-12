@@ -1,5 +1,8 @@
-from drchrono import dates
+from drchrono import dates as dateutil
 from drchrono.model2.Appointment import Appointment
+from drchrono.sched.APIGateway import APIGateway
+
+
 class PatientAppointment:
 
     def __init__ (self, patient, appointment):
@@ -37,7 +40,7 @@ class PatientAppointment:
 
     @property
     def scheduled_time_12hr (self):
-        return dates.time_format(self._appointment.scheduled_time)
+        return dateutil.time_format(self._appointment.scheduled_time)
 
     @property
     def duration (self):
@@ -67,6 +70,49 @@ class PatientAppointment:
     def status (self, status):
         self._appointment.status = status # will persist new status to API
 
+    @property
+    def completion_time (self):
+        t = self.completion_time_raw
+        if t:
+            return dateutil.time_format(t)
+        return None
+
+    @property
+    def completion_time_raw (self):
+        gw = APIGateway()
+        compl_rec = gw.get_appointment_status_transition(self.appointment_id, Appointment.STATUS_COMPLETE)
+        if not compl_rec:
+            return None
+        t = compl_rec['datetime']
+        return t
+
+    # for a completed appointment, get the diff between completion time and time of exam
+    @property
+    def actual_duration (self):
+        res = self.actual_duration_raw
+        if res != None:
+            min, sec = res
+            if sec and sec > 9:
+                return "{}:{}".format(min,sec)
+            elif sec:
+                return "{}:0{}".format(min,sec)
+            else: return "{}:00".format(min)
+        else:
+            return ""
+
+    @property
+    def actual_duration_raw (self):
+        gw = APIGateway()
+        # status history is only stored as low-level json in the gateway cache (not in Model objects)
+        compl_rec = gw.get_appointment_status_transition(self.appointment_id, Appointment.STATUS_COMPLETE)
+        if not compl_rec:
+            return None
+        ex_rec = gw.get_appointment_status_transition(self.appointment_id, Appointment.STATUS_EXAM)
+        min, sec = dateutil.time_diff(compl_rec['datetime'], ex_rec['datetime'])
+        return (min, sec)
+
+
+
     def is_active (self):
         return self.status != Appointment.STATUS_COMPLETE and self.status != Appointment.STATUS_CANCELLED
 
@@ -87,6 +133,7 @@ class PatientAppointment:
         return {'first_name': self.first_name, 'last_name': self.last_name,
                 'scheduled_time_12hr': self.scheduled_time_12hr, 'scheduled_time': self.scheduled_time,
                 'reason': self.reason, 'status': self.status, 'checkin_time': self.checkin_time,
+                'completion_time': self.completion_time, 'actual_duration': self.actual_duration,
                 'appointment_id': self.appointment_id}
 
     def short_repr (self):

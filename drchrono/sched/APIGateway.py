@@ -80,3 +80,13 @@ class APIGateway:
             a = self.appointments_map[appt_id]
             stat = a['status']
             ep.update(id=appt_id, data={'status': stat}, partial=True)
+
+        def get_appointment_status_transition (self, appt_id, status):
+            # TODO if there are many with the same status, it returns first one.  Not sure of the
+            # ordering in this list, but probably want the one with the latest timestamp.
+            rec = self.appointments_map[appt_id]
+            trans = rec['status_transitions']
+            for t in trans:
+                if t['to_status'] == status:
+                    return t
+            return None

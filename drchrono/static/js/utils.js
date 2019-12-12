@@ -31,12 +31,29 @@ function toHM (mins, addColor=false) {
 
 }
 
+function waitTimeWithTooltip (displayedTime, timeSinceCheckin) {
+  // return '<div class="tooltip">' + displayedTime +
+  //   '<span class="tooltiptext">Time since checkin: ' + timeSinceCheckin + '</span></div>';
+  return '<abbr title="Time since check-in: '+ timeSinceCheckin + '">' + displayedTime + '</abbr>';
+}
+
+function pad0 (n) {
+  return n < 10 ? '0'+n : n;
+}
+
 function timestampStr () {
   var ts = new Date();
   var month = ts.getMonth()+1;
   var day = ts.getDate();
-  var monthStr = month < 10 ? `0${month}` : `${month}`;
-  var dayStr = day < 10 ? `0${day}` : `${day}`;
-  return `${ts.getFullYear()}-${monthStr}-${dayStr}T${ts.getHours()}:${ts.getMinutes()}:${ts.getSeconds()}`
+  var hr = ts.getHours();
+  var mint = ts.getMinutes();
+  var sec = ts.getSeconds();
+
+  var monthStr = pad0(month);
+  var dayStr = pad0(day);
+  var hrStr = pad0(hr);
+  var minStr = pad0(mint);
+  var secStr = pad0(sec);
+  return `${ts.getFullYear()}-${monthStr}-${dayStr}T${hrStr}:${minStr}:${secStr}`
 
 }
