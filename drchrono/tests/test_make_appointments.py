@@ -1,5 +1,6 @@
 from drchrono.sched.ModelObjects import ModelObjects
 from drchrono.model2.Appointment import Appointment
+from drchrono.sched.AppointmentMgr import AppointmentMgr
 from drchrono.model2.Doctor import Doctor
 import pytest
 import datetime
@@ -13,7 +14,7 @@ def make_appointment_for_patient (p, ts):
     apt = Appointment({'patient':p.id, 'duration': 30, 'reason': 'Feeling sick', 'exam_room': 1,
                        'office': doc.office, 'doctor': doc.id,
                        'scheduled_time': dateutil.timestamp_api_format(ts)})
-    apt = m.save_appointment(apt)
+    apt = AppointmentMgr.save_appointment(apt)
     return apt
 
 @pytest.mark.skip
@@ -25,6 +26,7 @@ def test_make_1_appt ():
     print(apt)
     assert apt.patient_id == p1.id
 
+@pytest.mark.skip
 def test_make_1_appt_before_now ():
     m = ModelObjects()
     p1 = m.patients[8]

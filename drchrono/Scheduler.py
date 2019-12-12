@@ -1,4 +1,5 @@
 from drchrono.model2.Appointment import Appointment
+from drchrono.sched.AppointmentMgr import AppointmentMgr
 from drchrono.sched.ModelObjects import ModelObjects
 from drchrono import dates as dateutil
 from drchrono.api_models.PatientAppointment import PatientAppointment
@@ -113,5 +114,5 @@ class Scheduler:
                      'exam': Appointment.STATUS_EXAM}
             status = trans[status];
             m = ModelObjects()
-            m.set_appointment_status(appointment_id,status,persist=True) #save status locally and in API
+            AppointmentMgr.set_appointment_status(appointment_id,status,persist=True) #save status locally and in API
             return HttpResponse()

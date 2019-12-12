@@ -62,46 +62,6 @@ class ModelObjects:
             self._appointments_map = {a.id: a for a in self._appointments}
 
 
-        # TODO methods below should go into some inner classes for Appointments and Patients
-
-        # write the appointment to the api.  It will not have an id
-        def save_appointment (self, appointment):
-            rec = self.api_gateway.create_appointment(appointment.data)
-            apt = Appointment(rec)
-            self.appointments.append(apt)
-            self.appointments_map[apt.id] = apt
-            return apt
-
-
-        def set_appointment_status(self, appointment_id, status, persist=False):
-            '''
-            Modifies the Appointment object held here which also modifies its underlying data dictionary held in
-            the APIGateway cache.
-            :param appointment_id:
-            :param status:
-            :param persist: If True, the status will be written to the API
-            :return:
-            '''
-            appt = self._appointments_map[appointment_id] #type: Appointment
-            appt.status = status
-            if persist:
-                self.api_gateway.save_appointment_stat(appointment_id)
-
-
-        def get_patients_from_name(self, fname, lname, ssn4=None):
-            l = []
-            for p in self.patients:
-                if p.first_name.lower() == fname.lower() and p.last_name.lower() == lname.lower():
-                    if ssn4 and p.ssn4 == ssn4:
-                        l.append(p)
-                    elif not ssn4:
-                        l.append(p)
-            return l
-
-        def get_patient_by_id (self, id):
-            return self.patients_map.get(id)
-
-
 
 
 

@@ -3,6 +3,8 @@ from drchrono.exc.exceptions import NonUniqueException, NotFoundException
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from drchrono.model2.Appointment import Appointment
+from drchrono.sched.PatientMgr import PatientMgr
+from drchrono.sched.AppointmentMgr import AppointmentMgr
 from drchrono.sched.APIGateway import APIGateway
 from drchrono.forms import CheckinForm, PatientInfoForm, CheckoutSurveyForm
 import django.forms.forms
@@ -94,7 +96,7 @@ class CheckinView(FormView):
         lname = valid_data['last_name']
         ssn4 = valid_data['ssn4']
         m = ModelObjects()
-        pats = m.get_patients_from_name(fname,lname,ssn4)
+        pats = PatientMgr.get_patients_from_name(fname,lname,ssn4)
         if len(pats) > 1:
             for p in pats:
                 print(p.ssn4)
@@ -133,7 +135,7 @@ class CheckinView(FormView):
         patient_appts = doc.get_patient_appointments(patient_id=p.id)
         for pa in patient_appts:
             if pa.is_active():
-                m.set_appointment_status(pa.appointment_id,Appointment.STATUS_WAITING,persist=True) #save status locally and in API
+                AppointmentMgr.set_appointment_status(pa.appointment_id,Appointment.STATUS_WAITING,persist=True) #save status locally and in API
         return p
 
 
