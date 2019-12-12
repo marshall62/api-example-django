@@ -7,86 +7,64 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 
 def get_appts (request):
-    sched = Scheduler.get_appointments(request) # dict of appointments keyed by status
-    avg_wt, max_wt = Scheduler.get_avg_and_max_wait_time()
-    avg_duration = Scheduler.get_avg_duration()
-    stats = {'avg_wait': dateutil.min2minSec(avg_wt),
-             'max_wait': dateutil.min2minSec(max_wt),
-             'avg_duration': dateutil.min2minSec(avg_duration)}
-    sched['stats'] = stats
+    sched = ScheduleKeeper.get_appointments(request) # dict of appointments keyed by status
+    sched['stats'] = ScheduleKeeper.get_appointment_stats()
     return JsonResponse(sched)
 
 def update_stat (request, appointment_id):
-    return Scheduler.update_appointment_status(request, appointment_id)
+    return ScheduleKeeper.update_appointment_status(request, appointment_id)
 
 
-class Scheduler:
+class ScheduleKeeper:
 
     update_count = 0
 
     @classmethod
-    def get_avg_and_max_wait_time (cls):
-        ''' Compute the average wait time of all completed appointments for TODAY
-        :return minutes
+    def get_appointment_stats (cls):
+        ''' Compute stats about completed appointments
         '''
         doc = ModelObjects().doctor
         mx = 0
-        tot = 0
+        duration_total = 0
+        wait_total = 0
         count = 0
         for pa in doc.get_patient_appointments():
             if pa.status == Appointment.STATUS_COMPLETE:
                 sch = pa.scheduled_time
                 comp = pa.completion_time_raw
+                min, sec = pa.actual_duration_raw
+                duration_total += min
                 min, sec = dateutil.time_diff(comp, sch)
+                wait_total += min # ignore secs
                 if min > mx:
                     mx = min
-                tot += min # ignore secs
                 count += 1
         if count > 0:
-            return tot // count, mx
+            return {'max_wait': mx, 'avg_wait': wait_total // count, 'avg_duration': duration_total // count}
         else:
-            return 0, mx
+            return {'max_wait': 0, 'avg_wait': 0, 'avg_duration': 0}
 
 
     @classmethod
-    def get_avg_duration (cls):
-        ''' Compute the average actual duration time of all completed appointments for TODAY'
-        :return minutes
-        '''
-        doc = ModelObjects().doctor
-        tot = 0
-        count = 0
-        for pa in doc.get_patient_appointments():
-            if pa.status == Appointment.STATUS_COMPLETE:
-                min, sec = pa.actual_duration_raw
-                tot += min # ignore secs
-                count += 1
-        if count > 0:
-            return tot // count
-        else:
-            return 0
-
-    @classmethod
-    def update_from_api (cls):
+    def _refresh_appointments_and_patients_from_api (cls):
         # get new list of appointments every time browser page calls for updates
         #
         m = ModelObjects()
         m.reload_appointments()
 
         # patients are loaded every 10 updates because this is less dynamic
-        if Scheduler.update_count % 10 == 0:
+        if ScheduleKeeper.update_count % 10 == 0:
             m.reload_patients()
 
     @classmethod
     def get_appointments (cls, request):
-        # pas = Appointments.get_active_appointments_for_date() #type: # List[PatientAppointment]
         '''
         This is called on a timer from the UI.
         :param request:
         :return:
         '''
-        Scheduler.update_count += 1
-        Scheduler.update_from_api()
+        ScheduleKeeper.update_count += 1
+        ScheduleKeeper._refresh_appointments_and_patients_from_api()
         doc = ModelObjects().doctor
 
         pas = doc.get_patient_appointments() #type: List[PatientAppointment]
