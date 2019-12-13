@@ -1,18 +1,27 @@
 {% extends 'base.html' %}
+
+{% block page-js %}
+  <script language="JavaScript">
+  $(document).ready(function() {
+    // initialize with defaults
+    $("#input-id").rating();
+    // with plugin options
+    {#$("#input-id").rating({min:0, max:5, step:1, size:'lg'});#}
+  });
+  </script>
+{% endblock %}
+
 {% block body %}
 
-<form action="." method="POST">
+<form action="?patient_id={{ patient.id }}" method="POST">
+  {% csrf_token %}
   <h3>Thanks for checking out.  Please take a moment to let us know how we did:</h3>
   <br><br>
-  {% csrf_token %}
-  {%  if form.errors  %}
-    Please correct the error{{ form.errors|pluralize }} below:
-    {{ form.all.errors }}
-  {% endif %}
-  <table>
-    {{ form.as_table }}
-  </table>
+  <input id="input-id" name="rating" type="number" class="rating rating-loading" data-min="0" data-max="5" data-step="1">
+
   <br><br>
+
+
   <button class="btn btn-primary" type="submit">Submit</button>
 </form>
 {% endblock %}

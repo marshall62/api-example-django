@@ -4,7 +4,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 from drchrono import views
-from drchrono.Scheduler import get_appts, update_stat
+from drchrono.ScheduleKeeper import get_appts, update_stat
 import drchrono.webhook.process as mywebhook
 
 

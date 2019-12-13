@@ -10,6 +10,31 @@ def test_gw_singl ():
     assert g is g2
 
 
+def test_dr ():
+    g = APIGateway(False)
+    rec = g._load_dr_from_api()
+    print (rec)
+    assert rec['first_name'] == 'David'
+    assert rec['last_name'] == 'Marshall'
+
+def test_pats ():
+    g = APIGateway(False)
+    rec = g._load_dr_from_api()
+    g.doctor = rec
+    recs = g._load_pts_from_api()
+    for r in recs:
+        print(r)
+    assert len(recs) > 0
+
+def test_appt ():
+    g = APIGateway(False)
+    rec = g._load_dr_from_api()
+    g.doctor = rec
+    recs = g._load_appts_from_api()
+    for r in recs:
+        print(r)
+    assert len(recs) > 0
+
 def test_gw_load ():
     APIGateway.instance = None # remove its inner so that we can make a new one with loading true
     gw = APIGateway()

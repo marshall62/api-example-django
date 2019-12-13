@@ -39,13 +39,25 @@ function addStatsToCompletedTable (avgWait, maxWait, avgDur) {
 }
 
 
+function ratingStars (nStars) {
+  var str="";
+  if (nStars && nStars > 0 && nStars <= 5) {
+    for (var i=0;i<nStars; i++) {
+      str += "<img width='30' height='30' src='/static/images/star.png'/>"
+    }
+    return str;
+  }
+  return '';
+}
+
 function reloadCompletedTableAppointments (appointments) {
   var $tab = $('#completeTableTbody');
   $tab.empty();
   for (var i=0;i<appointments.length;i++) {
     var pa = appointments[i];
+    var stars = ratingStars(pa.rating);
     var tr = trTag(pa.appointment_id, pa.scheduled_time, pa.checkin_time);
-    tr += "<td>" + pa.completion_time + "</td> <td>" + pa.actual_duration + "</td> <td>" + pa.first_name + "</td> <td>" + pa.last_name + "</td> <td>" + "5 stars" + "</td></tr>";
+    tr += "<td>" + pa.completion_time + "</td> <td>" + pa.actual_duration + "</td> <td>" + pa.first_name + "</td> <td>" + pa.last_name + "</td> <td>" + stars + "</td></tr>";
     $tab.append(tr);
   }
 }

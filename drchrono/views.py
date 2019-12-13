@@ -82,29 +82,16 @@ class CheckinView(FormView):
                     traceback.print_exc()
                     form.errors[django.forms.forms.NON_FIELD_ERRORS] = ErrorList([e.__str__()])
             else:
-                pat = self.get_patient(form)
-                if pat:
-                    return redirect(self.checkout_success_url,
-                                    patient_id=pat.id)
+                try:
+                    pat = get_patient(form)
+                    if pat:
+                        return redirect(self.checkout_success_url,
+                                        patient_id=pat.id)
+                except Exception as e:
+                    traceback.print_exc()
+                    form.errors[django.forms.forms.NON_FIELD_ERRORS] = ErrorList([e.__str__()])
         return render(request, self.template_name, {'form': form})
 
-
-
-    def get_patient (self, form):
-        valid_data = form.cleaned_data
-        fname = valid_data['first_name']
-        lname = valid_data['last_name']
-        ssn4 = valid_data['ssn4']
-        m = ModelObjects()
-        pats = PatientMgr.get_patients_from_name(fname,lname,ssn4)
-        if len(pats) > 1:
-            for p in pats:
-                print(p.ssn4)
-            raise NonUniqueException("Could not find a single patient with that name.  Please use SSN")
-        if len(pats) == 1:
-            return pats[0]
-        else:
-            raise NotFoundException("Could not find patient with that name.  Please use SSN")
 
 
 
@@ -127,7 +114,7 @@ class CheckinView(FormView):
         :param form:
         :return:
         '''
-        p = self.get_patient(form)
+        p = get_patient(form)
         m = ModelObjects()
         doc = m.doctor
         # TODO SHould we verify that this patient has an appointment today and that they have arrived in neighborhood of scheduled time?
@@ -137,9 +124,6 @@ class CheckinView(FormView):
             if pa.is_active():
                 AppointmentMgr.set_appointment_status(pa.appointment_id,Appointment.STATUS_WAITING,persist=True) #save status locally and in API
         return p
-
-
-
 
 
 class PatientInfoView (FormView):
@@ -154,15 +138,9 @@ class PatientInfoView (FormView):
         return render(request, self.template_name, {'fname': p.first_name, 'form': f})
 
     def post(self, request, patient_id):
-        # TODO would like to include question about Are there any recent health changes we should
-        # know about today?  - Answer would be appended to the appt.reason  field
         m = ModelObjects()
         form = self.form_class(request.POST)
         if form.is_valid():
-            recent_chg = form.cleaned_data['recent_changes']
-            if recent_chg:
-                # TODO find first active future appt for this patient today and append this to the reason field.
-                pass
             return redirect(self.success_url)
         else:
             render(request, self.template_name,{'form': form})
@@ -173,10 +151,35 @@ class CheckoutSurveyView(FormView):
     template_name = 'checkout.html'
     success_url = reverse_lazy('kiosk')
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, patient_id):
         form = self.form_class()
-        return render(request,self.template_name, {'form': form})
+        return render(request,self.template_name, {'form': form, 'patient_id': patient_id})
 
-    def post (self, request, *args, **kwargs):
+    def post (self, request, patient_id):
         form = self.form_class(request.POST)
-        return redirect(self.success_url)
+        if form.is_valid():
+            rating = int(form.cleaned_data['rating'])
+            # the most recent complete appointment would be the one the rating goes to.
+            # which assumes the dr marks appointments as complete before the patient checks out
+            appointment = AppointmentMgr.get_most_recent_complete_appointment(patient_id)
+            if appointment:
+                appointment.extra = {'rating': rating}
+            return redirect(self.success_url)
+        else:
+            return render(request, self.template_name,{'form': form})
+
+
+def get_patient (form):
+    valid_data = form.cleaned_data
+    fname = valid_data['first_name']
+    lname = valid_data['last_name']
+    ssn4 = valid_data['ssn4']
+    pats = PatientMgr.get_patients_from_name(fname,lname,ssn4)
+    if len(pats) > 1:
+        for p in pats:
+            print(p.ssn4)
+        raise NonUniqueException("Could not find a single patient with that name.  Please use SSN")
+    if len(pats) == 1:
+        return pats[0]
+    else:
+        raise NotFoundException("Could not find patient with that name.  Please use SSN")

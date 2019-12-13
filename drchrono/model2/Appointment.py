@@ -71,6 +71,7 @@ class Appointment:
                 return trans['datetime']
         return None
 
+
     @property
     def data (self):
         return self._data

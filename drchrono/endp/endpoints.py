@@ -100,7 +100,7 @@ class BaseEndpoint(object):
             self.logger.debug("list got page {}".format('url'))
             while url:
                 data = response.json()
-                url = data['next']  # Same as the resource URL, but with the page query parameter present
+                url = data.get('next')  # Same as the resource URL, but with the page query parameter present
                 for result in data['results']:
                     yield result
                 # had to overcome (intentional??) sabotage of this method

@@ -28,12 +28,16 @@ def time_diff (d1_str, d2_str):
     return divmod(d.days * 86400 + d.seconds, 60)
 
 def min2minSec (min):
-    return minSec(min // 60, min % 60)
+    return hrminsec(min // 60, min % 60)
 
-def minSec (min, sec):
+def hrminsec (min, sec):
     s = ""
-    if min > 0:
-        s = "{}:".format(min)
+    if min > 60:
+        s += str(min // 60) + ":"
+    min = min % 60
+    if min >= 0 and min < 10:
+        s += "0{}:".format(min)
+    else: s += str(min) + ":"
     if sec >= 0 and sec < 10:
         s += "0"+str(sec)
     else: s += str(sec)

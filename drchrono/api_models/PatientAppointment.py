@@ -8,6 +8,7 @@ class PatientAppointment:
     def __init__ (self, patient, appointment):
         self._patient = patient #type: Patient
         self._appointment = appointment #type: Appointment
+        self._extra = {}
 
 
     @property
@@ -90,6 +91,7 @@ class PatientAppointment:
     @property
     def actual_duration (self):
         res = self.actual_duration_raw
+        # replace below with call to dates.hrminsec
         if res != None:
             min, sec = res
             if sec and sec > 9:
@@ -111,7 +113,22 @@ class PatientAppointment:
         min, sec = dateutil.time_diff(compl_rec['datetime'], ex_rec['datetime'])
         return (min, sec)
 
+    # extra is a field where I store data that are not supported in the API.  The value will be a
+    # dictionary of properties.
+    @property
+    def extra (self):
+        return self._appointment.data.get('extra')
 
+    @extra.setter
+    def extra (self, extra):
+        self._extra = extra
+        # also put in the appointment which allows this to persist throughout the session
+        # an overwrite of the extra data is done for now.  It should ADD to it.
+        self.appointment.data['extra'] = extra
+
+    @property
+    def rating (self):
+        return self.extra.get('rating') if self.extra else None
 
     def is_active (self):
         return self.status != Appointment.STATUS_COMPLETE and self.status != Appointment.STATUS_CANCELLED
@@ -134,6 +151,7 @@ class PatientAppointment:
                 'scheduled_time_12hr': self.scheduled_time_12hr, 'scheduled_time': self.scheduled_time,
                 'reason': self.reason, 'status': self.status, 'checkin_time': self.checkin_time,
                 'completion_time': self.completion_time, 'actual_duration': self.actual_duration,
+                'rating': self.rating,
                 'appointment_id': self.appointment_id}
 
     def short_repr (self):

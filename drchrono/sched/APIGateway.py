@@ -30,7 +30,16 @@ class APIGateway:
             return self._load_pts_from_api()
 
         def reload_appointments (self):
-            return self._load_appts_from_api()
+            temp_map = self.appointments_map
+            res = self._load_appts_from_api()
+            # this is how I preserve my extra fields that don't read/write to API
+            # put whatever extras there were into the newly loaded appointments.
+            print('checking for extra in data')
+            for id, data in temp_map.items():
+                if 'extra' in data:
+                    print('found extra ', data['extra'])
+                    self.appointments_map[id]['extra'] = data['extra']
+            return res
 
         def _as_map (self, obj_list):
             return {o['id']: o for o in obj_list}

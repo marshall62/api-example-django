@@ -31,6 +31,7 @@ class Doctor:
         '''
         :return: List[PatientAppointment] objects for today sorted by scheduled time
         '''
+        patient_id = int(patient_id) if patient_id else None
         m = drchrono.sched.ModelObjects.ModelObjects()
 
         res = []

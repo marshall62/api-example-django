@@ -29,3 +29,18 @@ class AppointmentMgr:
         appt.status = status
         if persist:
             m.api_gateway.save_appointment_stat(appointment_id)
+
+    @staticmethod
+    def get_most_recent_complete_appointment (patient_id):
+        '''
+        Get the most recently completed appointment for this patient
+        :param patient_id:
+        :return:
+        '''
+        m = ModelObjects()
+
+        max_dt = None
+        complete_apts = [a for a in m.doctor.get_patient_appointments(patient_id) if a.status == Appointment.STATUS_COMPLETE]
+        complete_apts = sorted(complete_apts, reverse=True, key=lambda a: a.scheduled_time)
+        return complete_apts[0] if len(complete_apts) > 0 else None
+

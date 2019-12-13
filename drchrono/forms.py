@@ -17,12 +17,12 @@ class CheckinForm(forms.Form):
         return ssn4
 
 class CheckoutSurveyForm(forms.Form):
-    rating = forms.CharField(label="Rate today's visit (1-5)")
-    ontime = forms.CharField(label="The doctor was on-time (disagree - agree)")
-    spent_time = forms.CharField(label="The doctor spent adequate time with me (disagree - agree)")
-    issues_addressed = forms.CharField(label="The issues and questions I had were well addressed (disagree - agree)")
-    support_efficient = forms.CharField(label="The support staff was friendly and efficient (disagree - agree)")
-    will_return = forms.CharField(label="Overall rating of todays appointment")
+    rating = forms.FloatField(label="Rate today's visit (1-5)")
+    # ontime = forms.CharField(label="The doctor was on-time (disagree - agree)")
+    # spent_time = forms.CharField(label="The doctor spent adequate time with me (disagree - agree)")
+    # issues_addressed = forms.CharField(label="The issues and questions I had were well addressed (disagree - agree)")
+    # support_efficient = forms.CharField(label="The support staff was friendly and efficient (disagree - agree)")
+    # will_return = forms.CharField(label="Overall rating of todays appointment")
 
 
 
@@ -33,13 +33,13 @@ class PatientInfoForm (forms.Form):
     date_of_birth = forms.DateField(required=False)
     gender = forms.CharField()
     address = forms.CharField(required=False)
-    prefer_verbal = forms.BooleanField(label="I prefer to ask questions and raise issues with my doctor personally")
-    recent_changes = forms.CharField(
-                                     label='Describe any recent changes to your health',
-                                     required=False)
-    other_med_info = forms.CharField(
-                                     label='Medical tests or info?',
-                                     required=False)
-    patient_issues = forms.CharField(
-                                     label='Questions or Issues you want addressed today?',
-                                     required=False)
+    # prefer_verbal = forms.BooleanField(label="I prefer to ask questions and raise issues with my doctor personally")
+    # recent_changes = forms.CharField(
+    #                                  label='Describe any recent changes to your health',
+    #                                  required=False)
+    # other_med_info = forms.CharField(
+    #                                  label='Medical tests or info?',
+    #                                  required=False)
+    # patient_issues = forms.CharField(
+    #                                  label='Questions or Issues you want addressed today?',
+    #                                  required=False)
