@@ -17,7 +17,7 @@ def make_appointment_for_patient (p, ts):
     apt = AppointmentMgr.save_appointment(apt)
     return apt
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_make_1_appt ():
     m = ModelObjects()
     p1 = m.patients[0]

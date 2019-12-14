@@ -1,5 +1,5 @@
 from drchrono.endp.endpoints import *
-from drchrono.token import get_token
+from drchrono.apitoken import get_token
 import datetime
 
 class APIGateway:
@@ -50,14 +50,14 @@ class APIGateway:
 
         def _load_pts_from_api (self):
             ep = PatientEndpoint(get_token())
-            self.patients = ep.list(params={'doctor': self.doctor['id']})
+            self.patients = ep.list(doctor_id=self.doctor['id'])
             self.patients_map = self._as_map(self.patients)
             return self.patients
 
         def _load_appts_from_api (self):
             ep = AppointmentEndpoint(get_token())
             today_ymd = datetime.date.today().strftime('%Y-%m-%d')
-            self.appointments = ep.list(verbose=True, date=today_ymd, params={'doctor': self.doctor['id']})
+            self.appointments = ep.list(verbose=True, date=today_ymd, doctor_id= self.doctor['id'])
             self.appointments_map = self._as_map(self.appointments)
             return self.appointments
 
@@ -67,6 +67,17 @@ class APIGateway:
             dr_offices = [o for o in ep.list() if o['doctor'] == doc_id]
             assert 0 < len(dr_offices), "No offices for doctor {}".format(doc_id)
             return  dr_offices[0]
+
+        def update_patient_summary (self, pat_data):
+            ep = PatientSummaryEndpoint(get_token())
+            ep.update(id=pat_data['id'], data=pat_data, partial=True)
+
+
+        def update_patient (self, patient_id, new_data=None):
+            ep = PatientEndpoint(get_token())
+            if new_data:
+                ep.update(id=patient_id, data=new_data, partial=True)
+
 
 
         def create_appointment (self, appt_data):

@@ -30,16 +30,7 @@ class CheckoutSurveyForm(forms.Form):
 class PatientInfoForm (forms.Form):
     first_name = forms.CharField()
     last_name = forms.CharField()
+    nick_name = forms.CharField()
     date_of_birth = forms.DateField(required=False)
     gender = forms.CharField()
-    address = forms.CharField(required=False)
-    # prefer_verbal = forms.BooleanField(label="I prefer to ask questions and raise issues with my doctor personally")
-    # recent_changes = forms.CharField(
-    #                                  label='Describe any recent changes to your health',
-    #                                  required=False)
-    # other_med_info = forms.CharField(
-    #                                  label='Medical tests or info?',
-    #                                  required=False)
-    # patient_issues = forms.CharField(
-    #                                  label='Questions or Issues you want addressed today?',
-    #                                  required=False)
+
