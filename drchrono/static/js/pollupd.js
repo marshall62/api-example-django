@@ -28,13 +28,13 @@ function updateTables (data) {
 }
 
 function addStatsToCompletedTable (avgWait, maxWait, avgDur) {
-  var tr = "<tr><td><b>Average Wait time:</b></td><td>"+avgWait+"</td>";
+  var tr = "<tr><td><b>Average Wait time (min):</b></td><td>"+avgWait+"</td>";
   $('#completeTableTbody').append(tr);
 
-  tr = "<tr><td><b>Max Wait time:</b></td><td>"+maxWait+"</td>";
+  tr = "<tr><td><b>Max Wait time (min):</b></td><td>"+maxWait+"</td>";
   $('#completeTableTbody').append(tr);
 
-  tr = "<tr><td><b>Average Duration:</b></td><td>"+avgDur+"</td>";
+  tr = "<tr><td><b>Average Duration (min):</b></td><td>"+avgDur+"</td>";
   $('#completeTableTbody').append(tr);
 }
 

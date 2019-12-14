@@ -1,5 +1,5 @@
 import drchrono.sched.ModelObjects
-from model2.PatientAppointment import PatientAppointment
+from drchrono.model2.PatientAppointment import PatientAppointment
 
 class Doctor:
 
