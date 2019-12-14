@@ -185,12 +185,29 @@ class PatientEndpoint(BaseEndpoint):
     endpoint = "patients"
 
 
-    def list(self, params=None, first_name=None, last_name=None, ssn4=None, **kwargs):
+    def list(self, params=None, doctor_id=None, first_name=None, last_name=None, ssn4=None, **kwargs):
         params = params or {}
+        params['doctor'] = doctor_id
         params['first_name'] = first_name
         params['last_name'] = last_name
         params['page_size'] = 250
         patients = super(PatientEndpoint, self).list(params, **kwargs)
+        if ssn4:
+            return [p for p in patients if p['social_security_number'][-4:] == ssn4]
+        else:
+            return list(patients)
+
+class PatientSummaryEndpoint(BaseEndpoint):
+    endpoint = "patients_summary"
+
+
+    def list(self, params=None, doctor_id=None, first_name=None, last_name=None, ssn4=None, **kwargs):
+        params = params or {}
+        params['doctor'] = doctor_id
+        params['first_name'] = first_name
+        params['last_name'] = last_name
+        params['page_size'] = 250
+        patients = super().list(params, **kwargs)
         if ssn4:
             return [p for p in patients if p['social_security_number'][-4:] == ssn4]
         else:
@@ -205,12 +222,13 @@ class AppointmentEndpoint(BaseEndpoint):
         return super(AppointmentEndpoint, self).update(id=id, data=data, partial=partial, **kwargs)
 
     # Special parameter requirements for a given resource should be explicitly called out
-    def list(self, params=None, date=None, start=None, end=None, verbose=False, **kwargs):
+    def list(self, params=None, doctor_id=None, date=None, start=None, end=None, verbose=False, **kwargs):
         """
         List appointments on a given date, or between two dates
         """
         # Just parameter parsing & checking
         params = params or {}
+        params['doctor'] = doctor_id
         params['page_size'] = 250
         if start and end:
             date_range = "{}/{}".format(start, end)

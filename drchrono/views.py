@@ -5,12 +5,14 @@ from django.urls import reverse_lazy
 from drchrono.model2.Appointment import Appointment
 from drchrono.sched.PatientMgr import PatientMgr
 from drchrono.sched.AppointmentMgr import AppointmentMgr
-from drchrono.sched.APIGateway import APIGateway
 from drchrono.forms import CheckinForm, PatientInfoForm, CheckoutSurveyForm
 import django.forms.forms
 from django.forms.utils import ErrorList
 from drchrono.sched.ModelObjects import ModelObjects
 import traceback
+
+from drchrono.model2.Patient import Patient
+
 
 class SetupView(TemplateView):
     """
@@ -141,6 +143,9 @@ class PatientInfoView (FormView):
         m = ModelObjects()
         form = self.form_class(request.POST)
         if form.is_valid():
+            form.cleaned_data['id'] = patient_id
+            p = PatientMgr.get_patient_by_id(patient_id) #type: Patient
+            PatientMgr.update_patient(p, new_data=form.cleaned_data, summary=False)
             return redirect(self.success_url)
         else:
             render(request, self.template_name,{'form': form})

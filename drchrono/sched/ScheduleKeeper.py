@@ -2,7 +2,7 @@ from drchrono.model2.Appointment import Appointment
 from drchrono.sched.AppointmentMgr import AppointmentMgr
 from drchrono.sched.ModelObjects import ModelObjects
 from drchrono import dates as dateutil
-from drchrono.api_models.PatientAppointment import PatientAppointment
+from drchrono.model2.PatientAppointment import PatientAppointment
 from django.http import HttpResponse
 from django.http import JsonResponse
 

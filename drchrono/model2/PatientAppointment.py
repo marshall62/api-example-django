@@ -32,6 +32,10 @@ class PatientAppointment:
         return self._patient.first_name
 
     @property
+    def nick_name(self):
+        return self._patient.nick_name
+
+    @property
     def last_name (self):
         return self._patient.last_name
 
@@ -147,7 +151,7 @@ class PatientAppointment:
             return status
 
     def toJSON (self):
-        return {'first_name': self.first_name, 'last_name': self.last_name,
+        return {'first_name': self.first_name, 'last_name': self.last_name, 'nick_name': self.nick_name,
                 'scheduled_time_12hr': self.scheduled_time_12hr, 'scheduled_time': self.scheduled_time,
                 'reason': self.reason, 'status': self.status, 'checkin_time': self.checkin_time,
                 'completion_time': self.completion_time, 'actual_duration': self.actual_duration,

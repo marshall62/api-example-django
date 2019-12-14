@@ -1,4 +1,6 @@
 from drchrono.sched.ModelObjects import ModelObjects
+from drchrono.sched.APIGateway import APIGateway
+
 
 class PatientMgr:
 
@@ -17,4 +19,11 @@ class PatientMgr:
     @staticmethod
     def get_patient_by_id ( id):
         m = ModelObjects()
-        return m.patients_map.get(id)
+        return m.patients_map.get(int(id))
+
+    @classmethod
+    def update_patient(cls, patient, new_data=None, summary=True):
+        if summary:
+            ModelObjects().save_patient_summary(patient)
+        else: ModelObjects().save_patient(patient, new_data)
+

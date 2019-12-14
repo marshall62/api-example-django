@@ -62,7 +62,12 @@ class ModelObjects:
             self._appointments_map = {a.id: a for a in self._appointments}
 
 
+        def save_patient_summary (self, patient):
+            self.api_gateway.update_patient_summary(patient.data)
 
+        def save_patient (self, patient, new_data=None):
+            if new_data:
+                self.api_gateway.update_patient(patient_id=patient.id, new_data=new_data)
 
 
 
