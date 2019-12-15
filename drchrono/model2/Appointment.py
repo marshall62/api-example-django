@@ -71,6 +71,15 @@ class Appointment:
                 return trans['datetime']
         return None
 
+    def get_status_transition (self, status):
+        # TODO if there are many with the same status, it returns first one.  Not sure of the
+        # ordering in this list, but probably want the one with the latest timestamp.
+        trans = self.data['status_transitions']
+        for t in trans:
+            if t['to_status'] == status:
+                return t
+        return None
+
 
     @property
     def data (self):

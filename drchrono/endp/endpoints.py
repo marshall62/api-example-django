@@ -41,6 +41,8 @@ class BaseEndpoint(object):
     BASE_URL = 'https://drchrono.com/api/'
     endpoint = ''
 
+    WORKING = True # used to simulate network failure
+
     def __init__(self, access_token=None):
         """
         Creates an API client which will act on behalf of a specific user
@@ -91,6 +93,8 @@ class BaseEndpoint(object):
         Returns an iterator to retrieve all objects at the specified resource. Waits to exhaust the current page before
         retrieving the next, which might result in choppy responses.
         """
+        if not BaseEndpoint.WORKING:
+            raise ConnectionError("Simulated Network Failure")
         self.logger.debug("list()")
         url = self._url()
         self._auth_headers(kwargs)
@@ -117,6 +121,8 @@ class BaseEndpoint(object):
         """
         Retrieve a specific object by ID
         """
+        if not BaseEndpoint.WORKING:
+            raise ConnectionError("Simulated Network Failure")
         url = self._url(id)
         self._auth_headers(kwargs)
         response = requests.get(url, params=params, **kwargs)
@@ -135,6 +141,8 @@ class BaseEndpoint(object):
            - 403 (Forbidden)
            - 409 (Conflict)
         """
+        if not BaseEndpoint.WORKING:
+            raise ConnectionError("Simulated Network Failure")
         url = self._url()
         self._auth_headers(kwargs)
         response = requests.post(url, data=data, json=json, **kwargs)
@@ -156,6 +164,8 @@ class BaseEndpoint(object):
            - 403 (Forbidden)
            - 409 (Conflict)
         """
+        if not BaseEndpoint.WORKING:
+            raise ConnectionError("Simulated Network Failure")
         url = self._url(id)
         self._auth_headers(kwargs)
         if partial:

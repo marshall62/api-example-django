@@ -1,5 +1,4 @@
-import pytest
-from drchrono.sched.APIGateway import APIGateway
+from drchrono.datastore.APIGateway import APIGateway
 
 def test_gw_singl ():
     # verify is true singleton

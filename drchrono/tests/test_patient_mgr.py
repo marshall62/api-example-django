@@ -1,6 +1,5 @@
 from drchrono.sched.PatientMgr import PatientMgr
 from drchrono.sched.ModelObjects import ModelObjects
-from drchrono.sched.APIGateway import APIGateway
 
 
 def test_patient__by_name ():

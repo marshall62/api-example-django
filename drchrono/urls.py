@@ -4,7 +4,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 from drchrono import views
-from drchrono.sched.ScheduleKeeper import get_appts, update_stat
+from drchrono.sched.ScheduleKeeper import get_appts, update_stat, toggle_net
 import drchrono.webhook.process as mywebhook
 
 
@@ -18,6 +18,6 @@ urlpatterns = [
     url(r'^appointments/(?P<appointment_id>\d+)$', update_stat, name='updateAppointments'),
     url(r'^kiosk/patientInfo/(?P<patient_id>\d+)$', views.PatientInfoView.as_view(), name='patientInfo'),
     url(r'^kiosk/checkout/(?P<patient_id>\d+)$', views.CheckoutSurveyView.as_view(), name='checkout'),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^toggle_network/$', toggle_net, name='toggle_network'),
     url(r'', include('social.apps.django_app.urls', namespace='social')),
 ]

@@ -14,10 +14,10 @@ def make_appointment_for_patient (p, ts):
     apt = Appointment({'patient':p.id, 'duration': 30, 'reason': 'Feeling sick', 'exam_room': 1,
                        'office': doc.office, 'doctor': doc.id,
                        'scheduled_time': dateutil.timestamp_api_format(ts)})
-    apt = AppointmentMgr.save_appointment(apt)
+    apt = AppointmentMgr.create_appointment(apt)
     return apt
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_make_1_appt ():
     m = ModelObjects()
     p1 = m.patients[0]

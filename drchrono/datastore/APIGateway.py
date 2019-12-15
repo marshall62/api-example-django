@@ -1,4 +1,5 @@
 from drchrono.endp.endpoints import *
+from drchrono.datastore.DataStoreAbstract import DataStoreAbstract
 from drchrono.apitoken import get_token
 import datetime
 
@@ -16,7 +17,7 @@ class APIGateway:
     def __getattr__(self, name):
         return getattr(self.instance, name)
 
-    class __APIGateway:
+    class __APIGateway(DataStoreAbstract):
 
         def __init__ (self, doLoad):
             if doLoad:
@@ -42,7 +43,7 @@ class APIGateway:
             return res
 
         def _as_map (self, obj_list):
-            return {o['id']: o for o in obj_list}
+            return {int(o['id']): o for o in obj_list}
 
         def _load_dr_from_api (self):
             ep = DoctorEndpoint(get_token())
@@ -76,21 +77,18 @@ class APIGateway:
         def update_patient (self, patient_id, new_data=None):
             ep = PatientEndpoint(get_token())
             if new_data:
-                ep.update(id=patient_id, data=new_data, partial=True)
-
+                ep.update(id=str(patient_id), data=new_data, partial=True)
 
 
         def create_appointment (self, appt_data):
             ep = AppointmentEndpoint(get_token())
             json = ep.create(data=appt_data)
             self.appointments.append(json)
-            self.appointments_map[json['id']] = json
+            self.appointments_map[int(json['id'])] = json
             return json
 
-        def save_appointment_stat (self, appt_id):
+        def save_appointment_status (self, appt_id, status):
             '''
-            Will write the current status of the appointment to the API.
-            Will write it regardless of whether its changed or not (TODO add some kind of flag to know if object is changed)
             :param appt_id:
             :param status:
             :return:
@@ -98,15 +96,9 @@ class APIGateway:
             # self.appointments_as_map[appt_id]['status'] = status # change the value in the cache
             ep = AppointmentEndpoint(get_token())
             a = self.appointments_map[appt_id]
-            stat = a['status']
-            ep.update(id=appt_id, data={'status': stat}, partial=True)
+            ep.update(id=str(appt_id), data={'status': status}, partial=True)
 
-        def get_appointment_status_transition (self, appt_id, status):
-            # TODO if there are many with the same status, it returns first one.  Not sure of the
-            # ordering in this list, but probably want the one with the latest timestamp.
-            rec = self.appointments_map[appt_id]
-            trans = rec['status_transitions']
-            for t in trans:
-                if t['to_status'] == status:
-                    return t
-            return None
+        def save_appointment_extra (self, appt_id, extra):
+            rec = self.appointments_map[int(appt_id)]
+            rec['extra'] = extra
+

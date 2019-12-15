@@ -1,5 +1,4 @@
 from drchrono.sched.ModelObjects import ModelObjects
-from drchrono.sched.APIGateway import APIGateway
 
 
 class PatientMgr:

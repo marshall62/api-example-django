@@ -1,6 +1,5 @@
 from drchrono import dates as dateutil
 from drchrono.model2.Appointment import Appointment
-from drchrono.sched.APIGateway import APIGateway
 
 
 class PatientAppointment:
@@ -84,8 +83,7 @@ class PatientAppointment:
 
     @property
     def completion_time_raw (self):
-        gw = APIGateway()
-        compl_rec = gw.get_appointment_status_transition(self.appointment_id, Appointment.STATUS_COMPLETE)
+        compl_rec = self._appointment.get_status_transition(Appointment.STATUS_COMPLETE)
         if not compl_rec:
             return None
         t = compl_rec['datetime']
@@ -108,14 +106,16 @@ class PatientAppointment:
 
     @property
     def actual_duration_raw (self):
-        gw = APIGateway()
         # status history is only stored as low-level json in the gateway cache (not in Model objects)
-        compl_rec = gw.get_appointment_status_transition(self.appointment_id, Appointment.STATUS_COMPLETE)
+        compl_rec = self._appointment.get_status_transition(Appointment.STATUS_COMPLETE)
         if not compl_rec:
             return None
-        ex_rec = gw.get_appointment_status_transition(self.appointment_id, Appointment.STATUS_EXAM)
-        min, sec = dateutil.time_diff(compl_rec['datetime'], ex_rec['datetime'])
-        return (min, sec)
+        ex_rec = self._appointment.get_status_transition( Appointment.STATUS_EXAM)
+        if compl_rec and ex_rec:
+            min, sec = dateutil.time_diff(compl_rec['datetime'], ex_rec['datetime'])
+            return (min, sec)
+        else:
+            return (0, 0)
 
     # extra is a field where I store data that are not supported in the API.  The value will be a
     # dictionary of properties.

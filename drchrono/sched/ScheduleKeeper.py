@@ -2,6 +2,7 @@ from drchrono.model2.Appointment import Appointment
 from drchrono.sched.AppointmentMgr import AppointmentMgr
 from drchrono.sched.ModelObjects import ModelObjects
 from drchrono import dates as dateutil
+import drchrono.endp.endpoints as ep
 from drchrono.model2.PatientAppointment import PatientAppointment
 from django.http import HttpResponse
 from django.http import JsonResponse
@@ -9,10 +10,16 @@ from django.http import JsonResponse
 def get_appts (request):
     sched = ScheduleKeeper.get_appointments(request) # dict of appointments keyed by status
     sched['stats'] = ScheduleKeeper.get_appointment_stats()
+    sched['network_on'] = 1 if ep.BaseEndpoint.WORKING else 0
     return JsonResponse(sched)
 
 def update_stat (request, appointment_id):
     return ScheduleKeeper.update_appointment_status(request, appointment_id)
+
+def toggle_net (request):
+    # turn on/off simulation of network failure.
+    ep.BaseEndpoint.WORKING = not ep.BaseEndpoint.WORKING
+    return JsonResponse({'network_status': ep.BaseEndpoint.WORKING})
 
 
 class ScheduleKeeper:
@@ -23,6 +30,7 @@ class ScheduleKeeper:
     def get_appointment_stats (cls):
         ''' Compute stats about completed appointments
         '''
+        # return {'max_wait': 0, 'avg_wait': 0, 'avg_duration': 0}
         doc = ModelObjects().doctor
         mx = 0
         duration_total = 0
@@ -91,6 +99,5 @@ class ScheduleKeeper:
                      'waiting': Appointment.STATUS_WAITING,
                      'exam': Appointment.STATUS_EXAM}
             status = trans[status];
-            m = ModelObjects()
             AppointmentMgr.set_appointment_status(appointment_id,status,persist=True) #save status locally and in API
             return HttpResponse()

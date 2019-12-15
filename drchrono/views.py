@@ -148,7 +148,7 @@ class PatientInfoView (FormView):
             PatientMgr.update_patient(p, new_data=form.cleaned_data, summary=False)
             return redirect(self.success_url)
         else:
-            render(request, self.template_name,{'form': form})
+            return render(request, self.template_name,{'form': form})
 
 
 class CheckoutSurveyView(FormView):
@@ -168,7 +168,8 @@ class CheckoutSurveyView(FormView):
             # which assumes the dr marks appointments as complete before the patient checks out
             appointment = AppointmentMgr.get_most_recent_complete_appointment(patient_id)
             if appointment:
-                appointment.extra = {'rating': rating}
+                #appointment.extra = {'rating': rating}
+                AppointmentMgr.set_rating(appointment.appointment_id, rating)
             return redirect(self.success_url)
         else:
             return render(request, self.template_name,{'form': form})
@@ -181,6 +182,7 @@ def get_patient (form):
     ssn4 = valid_data['ssn4']
     pats = PatientMgr.get_patients_from_name(fname,lname,ssn4)
     if len(pats) > 1:
+        print("patient ssn4s")
         for p in pats:
             print(p.ssn4)
         raise NonUniqueException("Could not find a single patient with that name.  Please use SSN")

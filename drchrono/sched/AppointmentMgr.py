@@ -4,31 +4,27 @@ class AppointmentMgr:
 
     # TODO methods below should go into some inner classes for Appointments and Patients
 
-    # write the appointment to the api.  It will not have an id
+    # write the appointment to datastore.  It will not have an id and will return an Appointment object
+    # which results from the writing (e.g. with id)
     @staticmethod
-    def save_appointment (appointment):
-        m = ModelObjects()
-        rec = m.api_gateway.create_appointment(appointment.data)
-        apt = Appointment(rec)
-        m.appointments.append(apt)
-        m.appointments_map[apt.id] = apt
-        return apt
+    def create_appointment (appointment):
+        return ModelObjects().create_appointment(appointment)
+
+
 
     @staticmethod
     def set_appointment_status(appointment_id, status, persist=False):
-        '''
-        Modifies the Appointment object held here which also modifies its underlying data dictionary held in
-        the APIGateway cache.
-        :param appointment_id:
-        :param status:
-        :param persist: If True, the status will be written to the API
-        :return:
-        '''
+        appointment_id = int(appointment_id)
         m = ModelObjects()
         appt = m.appointments_map[appointment_id] #type: Appointment
         appt.status = status
         if persist:
-            m.api_gateway.save_appointment_stat(appointment_id)
+            m.save_appointment_status(appointment_id, status)
+
+    @staticmethod
+    def set_rating (appointment_id, rating):
+        extra = {'rating': rating}
+        ModelObjects().set_extra(appointment_id, extra)
 
     @staticmethod
     def get_most_recent_complete_appointment (patient_id):

@@ -30,7 +30,10 @@ class CheckoutSurveyForm(forms.Form):
 class PatientInfoForm (forms.Form):
     first_name = forms.CharField()
     last_name = forms.CharField()
-    nick_name = forms.CharField()
+    nick_name = forms.CharField(required=False)
     date_of_birth = forms.DateField(required=False)
     gender = forms.CharField()
+
+
+
 

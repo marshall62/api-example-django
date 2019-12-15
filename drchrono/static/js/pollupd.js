@@ -23,6 +23,11 @@ function updateTables (data) {
   var avg_wait = data['stats']['avg_wait'];
   var max_wait = data['stats']['max_wait'];
   var avg_duration = data['stats']['avg_duration'];
+  var net_on = data['network_on'];
+  if (net_on == 0)
+    $('#topBanner').css({'background-color': 'lightgray'});
+  else
+    $('#topBanner').css({'background-color': 'rgba(203, 149, 13, 0.72)'});
   addStatsToCompletedTable(avg_wait, max_wait, avg_duration);
   updateExamTableTimes();
 }
@@ -43,7 +48,7 @@ function ratingStars (nStars) {
   var str="";
   if (nStars && nStars > 0 && nStars <= 5) {
     for (var i=0;i<nStars; i++) {
-      str += "<img width='30' height='30' src='/static/images/star.png'/>"
+      str += "<img width='25' height='25' src='/static/images/star.png'/>"
     }
     return str;
   }
