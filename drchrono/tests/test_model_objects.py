@@ -97,7 +97,7 @@ def test_patients ():
 def test_dr_patient_appts ():
     ModelObjects.instance = None
     d = ModelObjects(load_local=False).doctor
-    pas = d.get_patient_appointments()
+    pas =AppointmentMgr.get_patient_appointments()
     assert type(pas) == list
     for p in pas:
         print(p)

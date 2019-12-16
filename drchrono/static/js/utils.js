@@ -57,3 +57,25 @@ function timestampStr () {
   return `${ts.getFullYear()}-${monthStr}-${dayStr}T${hrStr}:${minStr}:${secStr}`
 
 }
+
+function now_hrmin () {
+  var n = new Date();
+  var hr = n.getHours();
+  var mins = n.getMinutes();
+  var ampm = 'AM';
+  if (hr >= 12) {
+    ampm = 'PM';
+    hr = hr % 12;
+  }
+  if (hr == 0)
+    hr = 12;
+  hr = `${hr}`;
+  if (mins == 0)
+    mins = '00';
+  else if (mins < 10)
+    mins = `0${mins}`;
+  else
+    mins = `${mins}`;
+
+  return `${hr}:${mins} ${ampm}`;
+}

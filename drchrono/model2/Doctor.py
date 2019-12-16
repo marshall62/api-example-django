@@ -27,22 +27,6 @@ class Doctor:
         return self._data['office']
 
 
-    def get_patient_appointments (self, patient_id=None):
-        '''
-        :return: List[PatientAppointment] objects for today sorted by scheduled time
-        '''
-        patient_id = int(patient_id) if patient_id else None
-        m = drchrono.sched.ModelObjects.ModelObjects()
 
-        res = []
-        pas = m.appointments #type: List[PatientAppointment]
-        for a in pas:
-            pid = a.patient_id
-            if patient_id and pid != patient_id:
-                continue
-            p = m.patients_map[pid]
-            pa = PatientAppointment(patient=p, appointment=a)
-            res.append(pa)
-        return sorted(res, key=lambda pa: pa.scheduled_time)
 
 

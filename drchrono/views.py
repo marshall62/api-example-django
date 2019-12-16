@@ -37,7 +37,7 @@ class DoctorSchedule(TemplateView):
         kwargs = super(DoctorSchedule, self).get_context_data(**kwargs)
         m = ModelObjects()
         doc = m.doctor
-        today_appts = doc.get_patient_appointments()
+        today_appts = AppointmentMgr.get_patient_appointments()
         kwargs['doctor'] = doc
         kwargs['appointments'] = today_appts
         return kwargs
@@ -121,7 +121,7 @@ class CheckinView(FormView):
         doc = m.doctor
         # TODO SHould we verify that this patient has an appointment today and that they have arrived in neighborhood of scheduled time?
         # get all active appointments for this patient today and set status to Checked In
-        patient_appts = doc.get_patient_appointments(patient_id=p.id)
+        patient_appts = AppointmentMgr.get_patient_appointments(patient_id=p.id)
         for pa in patient_appts:
             if pa.is_active():
                 AppointmentMgr.set_appointment_status(pa.appointment_id,Appointment.STATUS_WAITING,persist=True) #save status locally and in API

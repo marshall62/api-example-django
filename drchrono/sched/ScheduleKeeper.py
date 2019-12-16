@@ -36,7 +36,7 @@ class ScheduleKeeper:
         duration_total = 0
         wait_total = 0
         count = 0
-        for pa in doc.get_patient_appointments():
+        for pa in AppointmentMgr.get_patient_appointments():
             if pa.status == Appointment.STATUS_COMPLETE:
                 sch = pa.scheduled_time
                 comp = pa.completion_time_raw
@@ -75,7 +75,7 @@ class ScheduleKeeper:
         ScheduleKeeper._refresh_appointments_and_patients_from_api()
         doc = ModelObjects().doctor
 
-        pas = doc.get_patient_appointments() #type: List[PatientAppointment]
+        pas = AppointmentMgr.get_patient_appointments() #type: List[PatientAppointment]
         # remove the appointments in the waiting room and the ones in exam so that we have the appointments for the day
         # that are active.
         schedule = {'exam': [], 'waiting': [], 'complete': [], 'upcoming': []}

@@ -17,6 +17,7 @@ function getScheduledAppointments () {
 
 /* update all the tables with appointment data received. */
 function updateTables (data) {
+  reloadExamTableAppointments(data['exam']);
   reloadUpcomingTableAppointments(data['upcoming']);
   reloadWaitingTableAppointments(data['waiting']);
   reloadCompletedTableAppointments(data['complete']);
@@ -97,6 +98,22 @@ function reloadWaitingTableAppointments (appointments) {
   }
 }
 
+function reloadExamTableAppointments (appointments) {
+  var $tab = $('#examTableBody');
+  $tab.empty();
+  for (var i=0;i<appointments.length;i++) {
+    var pa = appointments[i];
+    var dur = calcElapsedTime(pa.exam_starttime);
+    if (dur && dur > 0)
+      dur = toHM(dur);
+    var ddItems = {'waiting': 'Checked In', 'complete': 'Complete'};
+    var dd = create_status_dropdown(pa.appointment_id, `Room ${pa.exam_room}`, ddItems);
+    var tr = trTag(pa.appointment_id, pa.scheduled_time, pa.exam_starttime);
+    tr += "<td>" +pa.scheduled_time_12hr+ "</td> <td>" +dur+ "</td> <td>" +pa.first_name+ "</td> <td>" +pa.last_name+ "</td> <td>" +pa.reason+ "</td> <td>" +dd+ "</td> </tr>";
+    $tab.append(tr);
+  }
+}
+
 function reloadUpcomingTableAppointments(appointments) {
   var $upcomingTab = $('#upcomingAppointmentsTbody');
   $upcomingTab.empty();
@@ -115,10 +132,12 @@ function reloadUpcomingTableAppointments(appointments) {
 
 }
 
-function trTag (appt_id, scheduled_time, checkin_time) {
+function trTag (appt_id, scheduled_time, checkin_time, exam_starttime) {
   var r = "<tr data-appointment-id='" + appt_id + "' data-scheduled-time='" + scheduled_time + "'";
   if (checkin_time)
     r += " data-checkin-time='" + checkin_time + "'";
+  if (exam_starttime)
+    r += " data-exam-start-time='" + exam_starttime + "'";
   r += ">";
   return r;
 }

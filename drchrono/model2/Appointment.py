@@ -58,6 +58,10 @@ class Appointment:
         return self._data['status_transitions']
 
     @property
+    def exam_room (self):
+        return self._data['exam_room']
+
+    @property
     def checkin_time (self):
         for trans in self.status_transitions:
             if trans['to_status'] == self.STATUS_WAITING:

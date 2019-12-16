@@ -22,6 +22,7 @@ function statusUpdate (aElt, appointmentId, newStatus) {
   var $row = aElt.closest("tr");
   if (newStatus === "complete") {
     $row.remove();
+    moveToCompleteTable($row);
   }
   else if (newStatus === 'waiting') {
     $row.remove();
@@ -84,6 +85,15 @@ function alterWaitingRowTime ($row) {
     $waitTd.html(toHM(diff));
   else
     $waitTd.html('');
+}
+
+function moveToCompleteTable ($rowElt) {
+  var now = now_hrmin();
+  var dur = $rowElt.find('td:nth-child(2)').html();
+  var fname = $rowElt.find('td:nth-child(3)').html();
+  var lname = $rowElt.find('td:nth-child(4)').html();
+  var tr = `<tr><td>${now}</td><td>${dur}</td><td>${fname}</td><td>${lname}</td></tr>`;
+  $('#completeTableTbody > tr:first').before(tr);
 }
 
 function moveToTable ($rowElt, $tbody, menuItems, selectedOption) {

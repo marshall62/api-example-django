@@ -67,6 +67,10 @@ class PatientAppointment:
         return self._appointment.reason
 
     @property
+    def exam_room (self):
+        return self._appointment.exam_room
+
+    @property
     def status (self):
         return self.simplify_status(self._appointment.status)
 
@@ -155,7 +159,7 @@ class PatientAppointment:
                 'scheduled_time_12hr': self.scheduled_time_12hr, 'scheduled_time': self.scheduled_time,
                 'reason': self.reason, 'status': self.status, 'checkin_time': self.checkin_time,
                 'completion_time': self.completion_time, 'actual_duration': self.actual_duration,
-                'rating': self.rating,
+                'rating': self.rating, 'exam_room': self.exam_room, 'exam_starttime': self.exam_starttime,
                 'appointment_id': self.appointment_id}
 
     def short_repr (self):
