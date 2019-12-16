@@ -161,7 +161,11 @@ class ModelObjects:
             self.local_db.save_appointment_status(appointment_id, status)
 
         def set_extra (self, appointment_id, extra):
-            self.api_gateway.save_appointment_extra(appointment_id, extra)
+            try:
+                self.api_gateway.save_appointment_extra(appointment_id, extra)
+            except Exception as e:
+                print("Failed to save rating", appointment_id, extra)
+                self.prexc()
             self.local_db.save_appointment_extra(appointment_id, extra)
 
         # not using
